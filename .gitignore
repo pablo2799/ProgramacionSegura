@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Archivo de variables de entorno cifrado
+conf.env.cpt
