@@ -83,8 +83,8 @@ WSGI_APPLICATION = 'practica1.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sistemaEvaluacion',
-        'USER': 'usuario1',
+        'NAME': os.environ.get('NAMEBD'),
+        'USER': os.environ.get('NAMEUSRBD'),
         'PASSWORD': os.environ.get('PASSUSRBD'),
         'HOST': 'localhost',
         'PORT': ''

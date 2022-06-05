@@ -16,9 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from practica1.views import *
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('',RedirectView.as_view(url='login', permanent=True)),
     path('login',login),
     path('registrar_maestros',registrar_maestros),
     path('registrar_alumnos',registrar_alumnos),
