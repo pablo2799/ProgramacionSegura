@@ -5,10 +5,10 @@ from django.conf import settings
 
 
 def login(request):
-    t = 'login.html'
-    if request.method == 'GET':
-       logueado = request.session.get('logueado', False)
-       return render(request,t) 
+   t = 'login.html'
+   if request.method == 'GET':
+      logueado = request.session.get('logueado', False)
+      return render(request,t) 
 
 def registrar_maestros(request):
    t = 'registrar_maestros.html'

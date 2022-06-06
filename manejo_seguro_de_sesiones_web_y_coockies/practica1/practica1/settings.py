@@ -22,8 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('LLAVEDJANGO')
-
+#SECRET_KEY = os.environ.get('LLAVEDJANGO')
+SECRET_KEY = 'django-insecure-qbp4%spff3cj^wb!s^ub47yun9ecde#+$jj(y&1cn!19d17&pr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -84,9 +84,9 @@ WSGI_APPLICATION = 'practica1.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('NAMEBD'),
-        'USER': os.environ.get('NAMEUSRBD'),
-	'PASSWORD': os.environ.get('PASSUSRBD'),
+        'NAME': 'sistemaEvaluacion',
+        'USER': 'root',
+	'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': ''
     }
@@ -133,3 +133,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
