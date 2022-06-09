@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+
+  aplicacionweb:
+    image: seguraweb4
+    restart: always
+    env_file:
+      - app.env
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    container_name: aplicacionweb
+    volumes:
+      - ./app/practica1:/app
+    depends_on:
+      - base_de_datos
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "1024M"
+
+  base_de_datos:
+    image: mysql:5.7
+    restart: always
+    env_file:
+      - bd.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    container_name: base_de_datos
+    volumes:
+      - ./data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "1024M"
+  
+  servidorweb:
+    image: nginx
+    restart: always
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./app/practica1/static:/static
+    depends_on:
+      - aplicacionweb
+    container_name: servidorweb
+    ports:
+      - 8000:80
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "1024M"
