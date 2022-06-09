@@ -179,7 +179,7 @@ def comprobar_token(request):
             obtener_datos = models.Alumnos.objects.get(token=token1)
             tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
             print('se obtiene el tiempo que transcurrido:', tiempoV)
-            if (tiempoV > 40):
+            if (tiempoV > 60):
                print('Se manda tiempo expirado')
                errores = ['Tiempo de vida del token expirado']
                #return redirect('./logout')
