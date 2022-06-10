@@ -116,30 +116,37 @@ def mandar_mensaje_bot(request):
 def login(request):
     template = 'login.html' 
     if request.method == 'GET': 
-      logueado = request.session.get('logueado', False) 
+      #logueado = request.session.get('logueado', False)
+      if request.session.get('logueado', False) == True:
+         return redirect('./inicio_usuario') 
         #if logueado: #Si está logueado redirige a la página que lista los Bots
          #   return redirect('./listar_ejercicios')
       return render(request, template) 
-    elif request.method == 'POST': 
-      usuario2 = request.POST.get('usuario1', '').strip() 
-      password = request.POST.get('password', '').strip()
-      print('*************password de login', password)
-      errores = [] 
-      try:
-         usuario = models.Alumnos.objects.get(usuario=usuario2)
-         if password_valido(password, usuario.password, usuario.salt):
-            print('*******Se validaron las contraseñas******')
-            #models.Alumnos.objects.get(usuario=usuario2, password=password) 
-            #request.session['logueado'] = True 
-            request.session['usuario'] = usuario2
-            mandar_mensaje_bot(request)
-            return redirect('./verificacion')
-         else:
+    elif request.method == 'POST':
+      datoIP = get_client_ip(request)
+      if puede_hacer_peticion(datoIP): 
+         usuario2 = request.POST.get('usuario1', '').strip() 
+         password = request.POST.get('password', '').strip()
+         print('*************password de login', password)
+         errores = [] 
+         try:
+            usuario = models.Alumnos.objects.get(usuario=usuario2)
+            if password_valido(password, usuario.password, usuario.salt):
+               print('*******Se validaron las contraseñas******')
+               #models.Alumnos.objects.get(usuario=usuario2, password=password) 
+               #request.session['logueado'] = True 
+               request.session['usuario'] = usuario2
+               mandar_mensaje_bot(request)
+               return redirect('./verificacion')
+            else:
+               errores = ['El Usuario o la Contraseña Son incorrectos']
+               return render(request, template, {'errores': errores})
+         except: 
             errores = ['El Usuario o la Contraseña Son incorrectos']
             return render(request, template, {'errores': errores})
-      except: 
-         errores = ['El Usuario o la Contraseña Son incorrectos']
-         return render(request, template, {'errores': errores}) 
+      else:
+         errores = ['Número de intentos permitidos agotados, espera un momento']
+         return render(request,template, {'errores': errores})
 
 def password_valido(contrasena_ingresada, contrasena_guardada, salt):
             binario_para_comparar = (contrasena_ingresada + salt).encode('utf-8')
@@ -168,33 +175,38 @@ def pagina_restringida(request):
 
 def comprobar_token(request):
    t = 'verificacion.html'
-   username = request.session['usuario']
-   if request.method == 'GET':
-      return render(request,t)
-   elif request.method == 'POST':
-      datoIP = get_client_ip(request)
-      if puede_hacer_peticion(datoIP):
-         token1 = request.POST.get('token', '').strip()
-         try:
-            obtener_datos = models.Alumnos.objects.get(token=token1)
-            tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
-            print('se obtiene el tiempo que transcurrido:', tiempoV)
-            if (tiempoV > 60):
-               print('Se manda tiempo expirado')
-               errores = ['Tiempo de vida del token expirado']
-               #return redirect('./logout')
-               return render(request, t, {'errores': errores}) 
-            request.session['logueado'] = True 
-            request.session['usuario'] = username
-            request.session['contador'] = 0 
-            return redirect('./subir_ejercicio')
-         except:
-            errores = ['Token de Telegram inválido']
-            #return redirect('./logout')
-            return render(request, t, {'errores': errores})
-      else:
-         errores = ['Número de intentos permitidos agotados, espera un momento']
-         return render(request,t, {'errores': errores})
+   try:
+      username = request.session['usuario']
+      if request.method == 'GET':
+         if request.session.get('logueado', False) == True:
+            return redirect('./inicio_usuario')
+         return render(request,t)
+      elif request.method == 'POST':
+         #datoIP = get_client_ip(request)
+         #if puede_hacer_peticion(datoIP):
+            token1 = request.POST.get('token', '').strip()
+            try:
+               obtener_datos = models.Alumnos.objects.get(token=token1)
+               tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
+               print('se obtiene el tiempo que transcurrido:', tiempoV)
+               if (tiempoV > 60):
+                  print('Se manda tiempo expirado')
+                  errores = ['Tiempo de vida del token expirado']
+                  #return redirect('./logout')
+                  return render(request, t, {'errores': errores}) 
+               request.session['logueado'] = True 
+               request.session['usuario'] = username
+               request.session['contador'] = 0 
+               return redirect('./inicio_usuario')
+            except:
+               errores = ['Token de Telegram inválido']
+               return redirect('./logout')
+               #return render(request, t, {'errores': errores})
+         #else:
+            #errores = ['Número de intentos permitidos agotados, espera un momento']
+            #return render(request,t, {'errores': errores})
+   except:
+      return redirect('./login')
 
 
 def registrar_maestros(request):
@@ -202,6 +214,17 @@ def registrar_maestros(request):
    if request.method == 'GET':
       return render(request,t)
 
+def inicio_usuario(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      username = request.session['usuario']
+      t = 'inicio_usuario.html'
+      if request.method == 'GET':
+         return render(request,t,{'userlog':username})
+   else:
+      return HttpResponse('No estas logueado')
 
 def registrar_alumnos(request): 
    template = 'registrar_alumnos.html' 

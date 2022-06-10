@@ -32,4 +32,5 @@ urlpatterns = [
     path('enviar',mandar_mensaje_bot),
     path('verificacion',comprobar_token),
     path('pagina_restringida',pagina_restringida),
+    path('inicio_usuario',inicio_usuario),
 ]
