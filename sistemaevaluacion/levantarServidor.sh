@@ -1,4 +1,4 @@
-}#!/bin/bash
+#!/bin/bash
 
 [[ -f "$1" ]] || { echo "La entrada debe ser un archivo cifrado con variables de entorno"; exit 1; } #Verifica que el oparametro sea un archivo
 

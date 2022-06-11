@@ -20,8 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)3f!__jdri7z1_(70iuk+9xp5jx_21^ek&p*ug^jm-@$%77oiy'
-#SECRET_KEY = os.environ.get('LLAVEDJANGO')
+#SECRET_KEY = 'django-insecure-)3f!__jdri7z1_(70iuk+9xp5jx_21^ek&p*ug^jm-@$%77oiy'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -83,11 +83,11 @@ WSGI_APPLICATION = 'sistemaevaluacion.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sistemaEvaluacion',
-        'USER': 'root',
-	    'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': ''
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+	    'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT')
     }
 }
 
@@ -136,3 +136,8 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INTENTOS_MAXIMOS_PETICION = 3
 VENTANA_SEGUNDOS_INTENTOS_PETICION = 50
+
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True

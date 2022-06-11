@@ -113,30 +113,40 @@ def mandar_mensaje_bot(request):
    #print('fecha registrada en el token: ',fecha_actual)
 
 
-def login(request): 
+def login(request):
     template = 'login.html' 
     if request.method == 'GET': 
-      logueado = request.session.get('logueado', False) 
+      #logueado = request.session.get('logueado', False)
+      if request.session.get('logueado', False) == True:
+         return redirect('./inicio_usuario') 
         #if logueado: #Si está logueado redirige a la página que lista los Bots
          #   return redirect('./listar_ejercicios')
       return render(request, template) 
-    elif request.method == 'POST': 
-      usuario2 = request.POST.get('usuario1', '').strip() 
-      password = request.POST.get('password', '').strip()
-      print('*************password de login', password)
-      errores = [] 
-      try:
-         usuario = models.Alumnos.objects.get(usuario=usuario2)
-         if password_valido(password, usuario.password, usuario.salt):
-            print('*******Se validaron las contraseñas******')
-            #models.Alumnos.objects.get(usuario=usuario2, password=password) 
-            request.session['logueado'] = True 
-            request.session['usuario'] = usuario2 
-            mandar_mensaje_bot(request)
-            return redirect('./verificacion')
-      except: 
-         errores = ['El Usuario o la Contraseña Son incorrectos']
-         return render(request, template, {'errores': errores}) 
+    elif request.method == 'POST':
+      datoIP = get_client_ip(request)
+      if puede_hacer_peticion(datoIP): 
+         usuario2 = request.POST.get('usuario1', '').strip() 
+         password = request.POST.get('password', '').strip()
+         print('*************password de login', password)
+         errores = [] 
+         try:
+            usuario = models.Alumnos.objects.get(usuario=usuario2)
+            if password_valido(password, usuario.password, usuario.salt):
+               print('*******Se validaron las contraseñas******')
+               #models.Alumnos.objects.get(usuario=usuario2, password=password) 
+               #request.session['logueado'] = True 
+               request.session['usuario'] = usuario2
+               mandar_mensaje_bot(request)
+               return redirect('./verificacion')
+            else:
+               errores = ['El Usuario o la Contraseña Son incorrectos']
+               return render(request, template, {'errores': errores})
+         except: 
+            errores = ['El Usuario o la Contraseña Son incorrectos']
+            return render(request, template, {'errores': errores})
+      else:
+         errores = ['Número de intentos permitidos agotados, espera un momento']
+         return render(request,template, {'errores': errores})
 
 def password_valido(contrasena_ingresada, contrasena_guardada, salt):
             binario_para_comparar = (contrasena_ingresada + salt).encode('utf-8')
@@ -150,38 +160,53 @@ def password_valido(contrasena_ingresada, contrasena_guardada, salt):
                return False
 
 def logout(request):
+    request.session['logueado'] = False
     request.session.flush() #Termina la sesión
     return redirect('/login') #Redirige a la página de inicio de sesión
 
+def pagina_restringida(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      return HttpResponse('puedes entrar %s' % contador)
+   else:
+      return HttpResponse('EStas bloqueado %s' % contador)
 
 def comprobar_token(request):
    t = 'verificacion.html'
-   username = request.session['usuario']
-   if request.method == 'GET':
-      return render(request,t)
-   elif request.method == 'POST':
-      datoIP = get_client_ip(request)
-      if puede_hacer_peticion(datoIP):
-         token1 = request.POST.get('token', '').strip()
-         try:
-            obtener_datos = models.Alumnos.objects.get(token=token1)
-            tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
-            print('se obtiene el tiempo que transcurrido:', tiempoV)
-            if (tiempoV > 40):
-               print('Se manda tiempo expirado')
-               errores = ['Tiempo de vida del token expirado']
-               #return redirect('./logout')
-               return render(request, t, {'errores': errores}) 
-            request.session['logueado'] = True 
-            request.session['usuario'] = username 
-            return redirect('./subir_ejercicio')
-         except:
-            errores = ['Token de Telegram inválido']
-            #return redirect('./logout')
-            return render(request, t, {'errores': errores})
-      else:
-         errores = ['Número de intentos permitidos agotados, espera un momento']
-         return render(request,t, {'errores': errores})
+   try:
+      username = request.session['usuario']
+      if request.method == 'GET':
+         if request.session.get('logueado', False) == True:
+            return redirect('./inicio_usuario')
+         return render(request,t)
+      elif request.method == 'POST':
+         #datoIP = get_client_ip(request)
+         #if puede_hacer_peticion(datoIP):
+            token1 = request.POST.get('token', '').strip()
+            try:
+               obtener_datos = models.Alumnos.objects.get(token=token1)
+               tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
+               print('se obtiene el tiempo que transcurrido:', tiempoV)
+               if (tiempoV > 60):
+                  print('Se manda tiempo expirado')
+                  errores = ['Tiempo de vida del token expirado']
+                  #return redirect('./logout')
+                  return render(request, t, {'errores': errores}) 
+               request.session['logueado'] = True 
+               request.session['usuario'] = username
+               request.session['contador'] = 0 
+               return redirect('./inicio_usuario')
+            except:
+               errores = ['Token de Telegram inválido']
+               return redirect('./logout')
+               #return render(request, t, {'errores': errores})
+         #else:
+            #errores = ['Número de intentos permitidos agotados, espera un momento']
+            #return render(request,t, {'errores': errores})
+   except:
+      return redirect('./login')
 
 
 def registrar_maestros(request):
@@ -189,6 +214,17 @@ def registrar_maestros(request):
    if request.method == 'GET':
       return render(request,t)
 
+def inicio_usuario(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      username = request.session['usuario']
+      t = 'inicio_usuario.html'
+      if request.method == 'GET':
+         return render(request,t,{'userlog':username})
+   else:
+      return HttpResponse('No estas logueado')
 
 def registrar_alumnos(request): 
    template = 'registrar_alumnos.html' 
@@ -251,7 +287,7 @@ def validar_datos(usuario):
          errores.append('El nombre no puede quedar vacio')
       if len(usuario.chatId) <= 0:
          errores.append('El chatId no debe quedar vacio')
-      if len(usuario.token) <= 0:
+      if len(usuario.tokenId) <= 0:
          errores.append('El token no debe quedar vacio')
       if usuario.password.find(' ') != -1:
          errores.append('La contrasena no debe contener espacios')
@@ -270,21 +306,45 @@ def validar_datos(usuario):
 
 
 def listar_ejercicios(request):
-   t = 'listar_ejercicios.html'
-  # if request.method == 'GET':
-   return render(request,t)
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      t = 'listar_ejercicios.html'
+      if request.method == 'GET':
+         return render(request,t)
+   else:
+      return HttpResponse('No estas logueado')
 
 def subir_ejercicio(request):
-   t = 'subir_ejercicio.html'
-   if request.method == 'GET':
-      return render(request,t) 
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      t = 'subir_ejercicio.html'
+      if request.method == 'GET':
+         return render(request,t)
+   else:
+      return HttpResponse('No estas logueado') 
 
 def crear_ejercicios(request):
-   t = 'crear_ejercicios.html'
-   if request.method == 'GET':
-      return render(request,t)
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      t = 'crear_ejercicios.html'
+      if request.method == 'GET':
+         return render(request,t)
+   else:
+      return HttpResponse('No estas logueado')
 
 def revisar_ejercicio(request):
-   t = 'revisar_ejercicio.html'
-   if request.method == 'GET':
-      return render(request,t)
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      t = 'revisar_ejercicio.html'
+      if request.method == 'GET':
+         return render(request,t)
+   else:
+      return HttpResponse('No estas logueado')
