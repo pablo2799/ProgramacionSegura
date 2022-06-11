@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
- {% block titulo %}Regristro Usuarios{% endblock %}
- {% block encabezado %}Registrar Usuarios{% endblock %}
- {% block contenido %}
- {%  if errores %}
+{% block titulo %}Registro Alumnos{% endblock %}
+{% block encabezado %}Registrar Alumnos{% endblock %}
+{% block contenido %}
+{%  if errores %}
 <div class="container" id="errores">
     <div class="card bg-danger text-white">
         Errores encontrados:
@@ -33,6 +33,27 @@
                 Contraseña:
             </label>
             <input class="form-control" id="password" name="password" placeholder="Contraseña" type="password">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="matricula" style="color:#000000">
+                Matricula:
+            </label>
+            <input class="form-control" id="matricula" name="matricula" placeholder="Matricula" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="carrera" style="color:#000000">
+                Carrera:
+            </label>
+            <input class="form-control" id="carrera" name="carrera" placeholder="Carrera" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="correo" style="color:#000000">
+                Correo:
+            </label>
+            <input class="form-control" id="correo" name="correo" placeholder="Correo" type="text">
             </input>
         </div>
         <div class="mb-3 mt-3">

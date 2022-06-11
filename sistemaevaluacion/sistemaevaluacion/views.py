@@ -116,30 +116,41 @@ def mandar_mensaje_bot(request):
 def login(request):
     template = 'login.html' 
     if request.method == 'GET': 
-      #logueado = request.session.get('logueado', False)
       if request.session.get('logueado', False) == True:
          return redirect('./inicio_usuario') 
-        #if logueado: #Si está logueado redirige a la página que lista los Bots
-         #   return redirect('./listar_ejercicios')
       return render(request, template) 
     elif request.method == 'POST':
       datoIP = get_client_ip(request)
       if puede_hacer_peticion(datoIP): 
          usuario2 = request.POST.get('usuario1', '').strip() 
          password = request.POST.get('password', '').strip()
+         tipouser = request.POST.get('tipousuario', '').strip()
+         print('***********',tipouser,'**********')
          print('*************password de login', password)
          errores = [] 
          try:
-            usuario = models.Alumnos.objects.get(usuario=usuario2)
-            if password_valido(password, usuario.password, usuario.salt):
-               print('*******Se validaron las contraseñas******')
-               #models.Alumnos.objects.get(usuario=usuario2, password=password) 
-               #request.session['logueado'] = True 
-               request.session['usuario'] = usuario2
-               mandar_mensaje_bot(request)
-               return redirect('./verificacion')
+            if tipouser == 'alumno':
+               usuario = models.Alumnos.objects.get(usuario=usuario2)
+               if password_valido(password, usuario.password, usuario.salt):
+                  print('*******Se validaron las contraseñas******')
+                  request.session['usuario'] = usuario2
+                  mandar_mensaje_bot(request)
+                  return redirect('./verificacion')
+               else:
+                  errores = ['El Usuario o la Contraseña Son incorrectos']
+                  return render(request, template, {'errores': errores})
+            elif tipouser =='maestro':
+               usuario = models.Maestros.objects.get(maestro=usuario2)
+               if password_valido(password, usuario.contrasena, usuario.salt):
+                  print('*******Se validaron las contraseñas******')
+                  request.session['usuario'] = usuario2
+                  mandar_mensaje_bot(request)
+                  return redirect('./verificacion')
+               else:
+                  errores = ['El Usuario o la Contraseña Son incorrectos de maestro']
+                  return render(request, template, {'errores': errores})
             else:
-               errores = ['El Usuario o la Contraseña Son incorrectos']
+               errores = ['El Usuario o la Contraseña Son incorrectos de maestro 2']
                return render(request, template, {'errores': errores})
          except: 
             errores = ['El Usuario o la Contraseña Son incorrectos']
@@ -210,9 +221,37 @@ def comprobar_token(request):
 
 
 def registrar_maestros(request):
-   t = 'registrar_maestros.html'
+   template = 'registrar_maestros.html' 
    if request.method == 'GET':
-      return render(request,t)
+      if request.session.get('logueado', False) == True:
+         return redirect('./inicio_usuario')
+      print ('***********entro al GET***********')
+      return render(request, template) 
+   elif request.method == 'POST':
+      print('***********entro POST**************')
+      usuario = request.POST.get('nombre', '').strip()
+      password = request.POST.get('password', '').strip()
+      id_chat = request.POST.get('chatId', '').strip()
+      token_bot = request.POST.get('token', '').strip()
+      npersonal = request.POST.get('nopersonal', '').strip()
+      email = request.POST.get('correo', '').strip()
+      print ('*********password al registrar\n',password)
+      fecha=datetime.datetime.now()
+      usuario3 = models.Maestros(maestro=usuario, contrasena=password, nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha)
+      errores = validar_datos_maestros(usuario3)
+      if not errores:
+         print('*************NO hubo errores**********+')
+         salt = get_random_string(length=16)
+         binario = (password + salt).encode('utf-8')
+         hashss = hashlib.sha256()
+         hashss.update(binario)
+         usuario = models.Maestros(maestro=usuario, contrasena=hashss.hexdigest(), nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha, salt=salt)
+         usuario.save()
+         return redirect('/login')
+      else:
+         print('*************hubo errores****************')
+         contexto = {'errores':errores, 'usuario':usuario}
+         return render(request,template,contexto)
 
 def inicio_usuario(request):
    contador = request.session.get('contador', '')
@@ -229,6 +268,8 @@ def inicio_usuario(request):
 def registrar_alumnos(request): 
    template = 'registrar_alumnos.html' 
    if request.method == 'GET':
+      if request.session.get('logueado', False) == True:
+         return redirect('./inicio_usuario')
       print ('***********entro al GET***********')
       return render(request, template) 
    elif request.method == 'POST':
@@ -237,35 +278,80 @@ def registrar_alumnos(request):
       password = request.POST.get('password', '').strip()
       id_chat = request.POST.get('chatId', '').strip()
       token_bot = request.POST.get('token', '').strip()
+      matri = request.POST.get('matricula', '').strip()
+      carrer = request.POST.get('carrera', '').strip()
+      email = request.POST.get('correo', '').strip()
       print ('*********password al registrar\n',password)
       fecha=datetime.datetime.now()
-      usuario3 = models.Alumnos(usuario=usuario, password=password, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha)
-      errores = validar_datos(usuario3)
+      usuario3 = models.Alumnos(usuario=usuario, password=password, matricula=matri, carrera=carrer, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha)
+      errores = validar_datos_alumnos(usuario3)
       if not errores:
          print('*************NO hubo errores**********+')
          salt = get_random_string(length=16)
          binario = (password + salt).encode('utf-8')
          hashss = hashlib.sha256()
          hashss.update(binario)
-         usuario = models.Alumnos(usuario=usuario, password=hashss.hexdigest(), chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha, salt=salt)
+         usuario = models.Alumnos(usuario=usuario, password=hashss.hexdigest(), matricula=matri, carrera=carrer, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha, salt=salt)
          usuario.save()
          return redirect('/login')
       else:
          print('*************hubo errores****************')
          contexto = {'errores':errores, 'usuario':usuario}
          return render(request,template,contexto)
-      #registro=models.Alumnos()
-      #registro.usuario = usuario
-      #registro.password = password
-      #registro.chatId = id_chat
-      #registro.tokenId = token_bot
-      #registro.token = '0'
-      #registro.vidaToken = fecha
-      #registro.salt = '0'
-      #registro.save() #Guarda el registro nuevo
-      #return render(request, "registrar_alumnos.html")
 
-def validar_datos(usuario):
+def validar_datos_maestros(usuario):
+      caracteres_especiales = "º!#$%&/()=+-*"
+      errores = []
+      especial = 0
+      minus = 0
+      mayus = 0
+      digito = 0
+      for i in caracteres_especiales:
+         for e in usuario.contrasena:
+            if e == i:
+               especial = especial + 1;
+            if e.islower():
+               minus = minus + 1;
+            if e.isupper():
+               mayus = mayus + 1;
+            if e.isdigit():
+               digito = digito + 1;
+      if len(usuario.maestro) <= 0:
+         errores.append('El nombre no puede quedar vacio')
+      elif len(usuario.maestro) > 50:
+         errores.append('El nombre es muy largo')
+      if len(usuario.chatId) <= 0:
+         errores.append('El chatId no debe quedar vacio')
+      elif len(usuario.chatId) > 9:
+         errores.append('El chatId es muy largo')
+      if len(usuario.tokenId) <= 0:
+         errores.append('El token no debe quedar vacio')
+      elif len(usuario.tokenId) > 46:
+         errores.append('El token es muy largo')
+      if usuario.contrasena.find(' ') != -1:
+         errores.append('La contrasena no debe contener espacios')
+      if especial <= 0:
+         errores.append('La contrasena no tiene ningun caracter especial')
+      if len(usuario.contrasena) < 10:
+         errores.append('La contrasena no tiene la longitud necesaria de 10 caracteres')
+      if minus <= 0:
+         errores.append('La contrasena no tiene caracteres en minusculas')
+      if mayus <= 0:
+         errores.append('La contrasena no tiene caracteres en mayusculas')
+      if len(usuario.nopersonal) <= 0:
+         errores.append('El numero de personal no puede quedar vacio')
+      if len(usuario.nopersonal) > 5:
+         errores.append('EL numero de personal es muy largo')
+      if len(usuario.correo) <= 0:
+         errores.append('El correo no puede quedar vacio')
+      if len(usuario.correo) > 30:
+         errores.append('El correo no puede quedar vacio')
+ 
+      return errores
+ 
+      return HttpResponse('Ok')
+
+def validar_datos_alumnos(usuario):
       caracteres_especiales = "º!#$%&/()=+-*"
       errores = []
       especial = 0
@@ -282,35 +368,63 @@ def validar_datos(usuario):
                mayus = mayus + 1;
             if e.isdigit():
                digito = digito + 1;
- 
       if len(usuario.usuario) <= 0:
          errores.append('El nombre no puede quedar vacio')
+      elif len(usuario.usuario) > 50:
+         errores.append('El nombre es muy largo')
       if len(usuario.chatId) <= 0:
          errores.append('El chatId no debe quedar vacio')
+      elif len(usuario.chatId) > 9:
+         errores.append('El chatId es muy largo')
       if len(usuario.tokenId) <= 0:
          errores.append('El token no debe quedar vacio')
+      elif len(usuario.tokenId) > 46:
+         errores.append('El token es muy largo')
       if usuario.password.find(' ') != -1:
          errores.append('La contrasena no debe contener espacios')
       if especial <= 0:
-          errores.append('La contrasena no tiene ningun caracter especial')
+         errores.append('La contrasena no tiene ningun caracter especial')
       if len(usuario.password) < 10:
          errores.append('La contrasena no tiene la longitud necesaria de 10 caracteres')
       if minus <= 0:
          errores.append('La contrasena no tiene caracteres en minusculas')
       if mayus <= 0:
          errores.append('La contrasena no tiene caracteres en mayusculas')
+      if len(usuario.matricula) <= 0:
+         errores.append('La matricula no puede quedar vacia')
+      if len(usuario.matricula) > 9:
+         errores.append('La matricula es muy larga')
+      if len(usuario.carrera) <= 0:
+         errores.append('La carrera no puede quedar vacia')
+      if len(usuario.carrera) > 40:
+         errores.append('La carrera es muy larga')
+      if len(usuario.correo) <= 0:
+         errores.append('El correo no puede quedar vacio')
+      if len(usuario.correo) > 30:
+         errores.append('El correo no puede quedar vacio')
  
       return errores
  
       return HttpResponse('Ok') 
 
 
-def listar_ejercicios(request):
+def listar_ejercicios_maestros(request):
    contador = request.session.get('contador', '')
    if contador !='':
       request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'listar_ejercicios.html'
+      t = 'listar_ejercicios_maestros.html'
+      if request.method == 'GET':
+         return render(request,t)
+   else:
+      return HttpResponse('No estas logueado')
+
+def listar_ejercicios_estudiantes(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      t = 'listar_ejercicios_estudiantes.html'
       if request.method == 'GET':
          return render(request,t)
    else:
