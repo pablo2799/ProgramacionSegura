@@ -18,10 +18,11 @@ class Alumnos(models.Model): #Clase para alumnos que se pueden loguear en el sis
     token = models.CharField(max_length=4)
     vidaToken = models.DateTimeField()
     salt = models.CharField(max_length = 16, default="0")
+    tipouser = models.CharField(max_length=1,default="a")
 
 class Maestros(models.Model): #Clase para maestros que se pueden loguear en el sistema
-    maestro = models.CharField(max_length=50)
-    contrasena = models.CharField(max_length=255)
+    usuario = models.CharField(max_length=50)
+    password = models.CharField(max_length=255)
     nopersonal = models.CharField(max_length=5) 
     correo = models.CharField(max_length=30)
     chatId = models.CharField(max_length=9)
@@ -29,8 +30,9 @@ class Maestros(models.Model): #Clase para maestros que se pueden loguear en el s
     token = models.CharField(max_length=4)
     vidaToken = models.DateTimeField()
     salt = models.CharField(max_length = 16, default="0")
+    tipouser = models.CharField(max_length=1,default="m")
 
-class ejercicios(models.Model):
+class Ejercicios(models.Model):
     descripcion = models.CharField(max_length=255)
     entrada = models.CharField(max_length=100)
     salida = models.CharField(max_length=100)

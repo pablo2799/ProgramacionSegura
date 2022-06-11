@@ -100,9 +100,12 @@ def tiempo_de_vida(tiempo_registrado):
 
 
 def mandar_mensaje_bot(request):
-   usuario = request.session['usuario']
+   user = request.session['usuario']
    fecha_actual = datetime.datetime.now()
-   obtener_datos = models.Alumnos.objects.get(usuario=usuario)
+   if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+      obtener_datos = models.Alumnos.objects.get(usuario=user)
+   elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+      obtener_datos = models.Maestros.objects.get(usuario=user)
    mensaje = ''.join(random.sample(string.ascii_letters + string.digits, 4))
    send_text = 'https://api.telegram.org/bot' + obtener_datos.tokenId + '/sendMessage?chat_id=' + obtener_datos.chatId + '&parse_mode=Markdown&text=' + mensaje
    response = requests.get(send_text)
@@ -112,24 +115,24 @@ def mandar_mensaje_bot(request):
    registrar_token.save()
    #print('fecha registrada en el token: ',fecha_actual)
 
-
 def login(request):
-    template = 'login.html' 
-    if request.method == 'GET': 
+   template = 'login.html' 
+   if request.method == 'GET': 
       if request.session.get('logueado', False) == True:
          return redirect('./inicio_usuario') 
       return render(request, template) 
-    elif request.method == 'POST':
+   elif request.method == 'POST':
       datoIP = get_client_ip(request)
       if puede_hacer_peticion(datoIP): 
          usuario2 = request.POST.get('usuario1', '').strip() 
          password = request.POST.get('password', '').strip()
-         tipouser = request.POST.get('tipousuario', '').strip()
-         print('***********',tipouser,'**********')
+         tipousuario = request.POST.get('tipousuario', '').strip()
+         print('***********',tipousuario,'**********')
          print('*************password de login', password)
          errores = [] 
-         try:
-            if tipouser == 'alumno':
+         #try:
+         if tipousuario == 'alumno':
+               print ('ENtro en alumno')
                usuario = models.Alumnos.objects.get(usuario=usuario2)
                if password_valido(password, usuario.password, usuario.salt):
                   print('*******Se validaron las contraseñas******')
@@ -139,9 +142,10 @@ def login(request):
                else:
                   errores = ['El Usuario o la Contraseña Son incorrectos']
                   return render(request, template, {'errores': errores})
-            elif tipouser =='maestro':
-               usuario = models.Maestros.objects.get(maestro=usuario2)
-               if password_valido(password, usuario.contrasena, usuario.salt):
+         elif tipousuario =='maestro':
+               print ('ENtro en maestro')
+               usuario = models.Maestros.objects.get(usuario=usuario2)
+               if password_valido(password, usuario.password, usuario.salt):
                   print('*******Se validaron las contraseñas******')
                   request.session['usuario'] = usuario2
                   mandar_mensaje_bot(request)
@@ -149,12 +153,13 @@ def login(request):
                else:
                   errores = ['El Usuario o la Contraseña Son incorrectos de maestro']
                   return render(request, template, {'errores': errores})
-            else:
+         else:
                errores = ['El Usuario o la Contraseña Son incorrectos de maestro 2']
                return render(request, template, {'errores': errores})
-         except: 
-            errores = ['El Usuario o la Contraseña Son incorrectos']
-            return render(request, template, {'errores': errores})
+         #except:
+         #   print ('NO entro ni en alumno ni en maestro') 
+         #   errores = ['El Usuario o la Contraseña Son incorrectos']
+         #   return render(request, template, {'errores': errores})
       else:
          errores = ['Número de intentos permitidos agotados, espera un momento']
          return render(request,template, {'errores': errores})
@@ -193,29 +198,29 @@ def comprobar_token(request):
             return redirect('./inicio_usuario')
          return render(request,t)
       elif request.method == 'POST':
-         #datoIP = get_client_ip(request)
-         #if puede_hacer_peticion(datoIP):
-            token1 = request.POST.get('token', '').strip()
-            try:
+         token1 = request.POST.get('token', '').strip()
+         try:
+            if models.Alumnos.objects.filter(usuario__exact=username).count()>0:
                obtener_datos = models.Alumnos.objects.get(token=token1)
-               tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
-               print('se obtiene el tiempo que transcurrido:', tiempoV)
-               if (tiempoV > 60):
-                  print('Se manda tiempo expirado')
-                  errores = ['Tiempo de vida del token expirado']
-                  #return redirect('./logout')
-                  return render(request, t, {'errores': errores}) 
-               request.session['logueado'] = True 
-               request.session['usuario'] = username
-               request.session['contador'] = 0 
-               return redirect('./inicio_usuario')
-            except:
-               errores = ['Token de Telegram inválido']
-               return redirect('./logout')
-               #return render(request, t, {'errores': errores})
-         #else:
-            #errores = ['Número de intentos permitidos agotados, espera un momento']
-            #return render(request,t, {'errores': errores})
+               quieneres='alumno'
+            elif models.Maestros.objects.filter(usuario__exact=username).count()>0:
+               obtener_datos = models.Maestros.objects.get(token=token1)
+               quieneres='maestro'
+            tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
+            print('se obtiene el tiempo que transcurrido:', tiempoV)
+            if (tiempoV > 60):
+               print('Se manda tiempo expirado')
+               errores = ['Tiempo de vida del token expirado']
+               return render(request, t, {'errores': errores}) 
+            request.session['logueado'] = True 
+            request.session['usuario'] = username
+            if quieneres == 'alumno': 
+               return redirect('./inicio_alumnos')
+            elif quieneres == 'maestro':
+               return redirect('./inicio_maestros')
+         except:
+            errores = ['Token de Telegram inválido']
+            return redirect('./logout')
    except:
       return redirect('./login')
 
@@ -237,7 +242,7 @@ def registrar_maestros(request):
       email = request.POST.get('correo', '').strip()
       print ('*********password al registrar\n',password)
       fecha=datetime.datetime.now()
-      usuario3 = models.Maestros(maestro=usuario, contrasena=password, nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha)
+      usuario3 = models.Maestros(usuario=usuario, password=password, nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha)
       errores = validar_datos_maestros(usuario3)
       if not errores:
          print('*************NO hubo errores**********+')
@@ -245,7 +250,7 @@ def registrar_maestros(request):
          binario = (password + salt).encode('utf-8')
          hashss = hashlib.sha256()
          hashss.update(binario)
-         usuario = models.Maestros(maestro=usuario, contrasena=hashss.hexdigest(), nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha, salt=salt)
+         usuario = models.Maestros(usuario=usuario, password=hashss.hexdigest(), nopersonal=npersonal, correo=email, chatId=id_chat, tokenId=token_bot, token='0', vidaToken=fecha, salt=salt)
          usuario.save()
          return redirect('/login')
       else:
@@ -253,13 +258,25 @@ def registrar_maestros(request):
          contexto = {'errores':errores, 'usuario':usuario}
          return render(request,template,contexto)
 
-def inicio_usuario(request):
+def inicio_alumnos(request):
    contador = request.session.get('contador', '')
    if contador !='':
       request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
-      t = 'inicio_usuario.html'
+      t = 'inicio_alumnos.html'
+      if request.method == 'GET':
+         return render(request,t,{'userlog':username})
+   else:
+      return HttpResponse('No estas logueado')
+
+def inicio_maestros(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      username = request.session['usuario']
+      t = 'inicio_maestros.html'
       if request.method == 'GET':
          return render(request,t,{'userlog':username})
    else:
@@ -307,7 +324,7 @@ def validar_datos_maestros(usuario):
       mayus = 0
       digito = 0
       for i in caracteres_especiales:
-         for e in usuario.contrasena:
+         for e in usuario.password:
             if e == i:
                especial = especial + 1;
             if e.islower():
@@ -316,9 +333,9 @@ def validar_datos_maestros(usuario):
                mayus = mayus + 1;
             if e.isdigit():
                digito = digito + 1;
-      if len(usuario.maestro) <= 0:
+      if len(usuario.usuario) <= 0:
          errores.append('El nombre no puede quedar vacio')
-      elif len(usuario.maestro) > 50:
+      elif len(usuario.usuario) > 50:
          errores.append('El nombre es muy largo')
       if len(usuario.chatId) <= 0:
          errores.append('El chatId no debe quedar vacio')
@@ -328,11 +345,11 @@ def validar_datos_maestros(usuario):
          errores.append('El token no debe quedar vacio')
       elif len(usuario.tokenId) > 46:
          errores.append('El token es muy largo')
-      if usuario.contrasena.find(' ') != -1:
+      if usuario.password.find(' ') != -1:
          errores.append('La contrasena no debe contener espacios')
       if especial <= 0:
          errores.append('La contrasena no tiene ningun caracter especial')
-      if len(usuario.contrasena) < 10:
+      if len(usuario.password) < 10:
          errores.append('La contrasena no tiene la longitud necesaria de 10 caracteres')
       if minus <= 0:
          errores.append('La contrasena no tiene caracteres en minusculas')
