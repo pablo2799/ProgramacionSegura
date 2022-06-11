@@ -21,15 +21,15 @@ def get_client_ip(request):
    return ip
 
 def es_ip_conocida(ip: str):
-    """
-    Determina si la ip ya está en la BD.
+   """
+   Determina si la ip ya está en la BD.
 
-    Keyword Arguments:
-    ip: str
-    returns: bool
-    """
-    registros = models.Peticion.objects.filter(ip=ip)
-    return len(registros) != 0
+   Keyword Arguments:
+   ip: str
+   returns: bool
+   """
+   registros = models.Peticion.objects.filter(ip=ip)
+   return len(registros) != 0
 
 def guardar_peticion(ip: str, intentos: int):
     """
@@ -119,7 +119,11 @@ def login(request):
    template = 'login.html' 
    if request.method == 'GET': 
       if request.session.get('logueado', False) == True:
-         return redirect('./inicio_usuario') 
+         user = request.session['usuario']
+         if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_alumnos')
+         elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_maestros') 
       return render(request, template) 
    elif request.method == 'POST':
       datoIP = get_client_ip(request)
@@ -130,8 +134,8 @@ def login(request):
          print('***********',tipousuario,'**********')
          print('*************password de login', password)
          errores = [] 
-         #try:
-         if tipousuario == 'alumno':
+         try:
+            if tipousuario == 'alumno':
                print ('ENtro en alumno')
                usuario = models.Alumnos.objects.get(usuario=usuario2)
                if password_valido(password, usuario.password, usuario.salt):
@@ -142,7 +146,7 @@ def login(request):
                else:
                   errores = ['El Usuario o la Contraseña Son incorrectos']
                   return render(request, template, {'errores': errores})
-         elif tipousuario =='maestro':
+            elif tipousuario =='maestro':
                print ('ENtro en maestro')
                usuario = models.Maestros.objects.get(usuario=usuario2)
                if password_valido(password, usuario.password, usuario.salt):
@@ -153,27 +157,27 @@ def login(request):
                else:
                   errores = ['El Usuario o la Contraseña Son incorrectos de maestro']
                   return render(request, template, {'errores': errores})
-         else:
+            else:
                errores = ['El Usuario o la Contraseña Son incorrectos de maestro 2']
                return render(request, template, {'errores': errores})
-         #except:
-         #   print ('NO entro ni en alumno ni en maestro') 
-         #   errores = ['El Usuario o la Contraseña Son incorrectos']
-         #   return render(request, template, {'errores': errores})
+         except:
+            print ('NO entro ni en alumno ni en maestro') 
+            errores = ['El Usuario o la Contraseña Son incorrectos']
+            return render(request, template, {'errores': errores})
       else:
          errores = ['Número de intentos permitidos agotados, espera un momento']
          return render(request,template, {'errores': errores})
 
 def password_valido(contrasena_ingresada, contrasena_guardada, salt):
-            binario_para_comparar = (contrasena_ingresada + salt).encode('utf-8')
-            hashss = hashlib.sha256()
-            hashss.update(binario_para_comparar)
-            print('*********+contraseña guardada****', contrasena_guardada)
-            print('*********+contraseña ingresada****', hashss.hexdigest())
-            if contrasena_guardada == hashss.hexdigest():
-               return True
-            else:
-               return False
+   binario_para_comparar = (contrasena_ingresada + salt).encode('utf-8')
+   hashss = hashlib.sha256()
+   hashss.update(binario_para_comparar)
+   print('*********+contraseña guardada****', contrasena_guardada)
+   print('*********+contraseña ingresada****', hashss.hexdigest())
+   if contrasena_guardada == hashss.hexdigest():
+      return True
+   else:
+      return False
 
 def logout(request):
     request.session['logueado'] = False
@@ -193,10 +197,14 @@ def comprobar_token(request):
    t = 'verificacion.html'
    try:
       username = request.session['usuario']
-      if request.method == 'GET':
+      if request.method == 'GET': 
          if request.session.get('logueado', False) == True:
-            return redirect('./inicio_usuario')
-         return render(request,t)
+            user = request.session['usuario']
+            if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+               return redirect('./inicio_alumnos')
+            elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+               return redirect('./inicio_maestros') 
+         return render(request, t)
       elif request.method == 'POST':
          token1 = request.POST.get('token', '').strip()
          try:
@@ -227,10 +235,13 @@ def comprobar_token(request):
 
 def registrar_maestros(request):
    template = 'registrar_maestros.html' 
-   if request.method == 'GET':
+   if request.method == 'GET': 
       if request.session.get('logueado', False) == True:
-         return redirect('./inicio_usuario')
-      print ('***********entro al GET***********')
+         user = request.session['usuario']
+         if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_alumnos')
+         elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_maestros') 
       return render(request, template) 
    elif request.method == 'POST':
       print('***********entro POST**************')
@@ -259,35 +270,40 @@ def registrar_maestros(request):
          return render(request,template,contexto)
 
 def inicio_alumnos(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
-      t = 'inicio_alumnos.html'
-      if request.method == 'GET':
-         return render(request,t,{'userlog':username})
+      try:
+         maestro = models.Alumnos.objects.get(usuario=username)
+         t = 'inicio_alumnos.html'
+         if request.method == 'GET':
+            return render(request,t,{'userlog':username})
+      except:
+         return HttpResponse('Pagina solo para alumnos')
    else:
       return HttpResponse('No estas logueado')
 
 def inicio_maestros(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
-      t = 'inicio_maestros.html'
-      if request.method == 'GET':
-         return render(request,t,{'userlog':username})
+      try:
+         maestro = models.Maestros.objects.get(usuario=username)
+         t = 'inicio_maestros.html'
+         if request.method == 'GET':
+            return render(request,t,{'userlog':username})
+      except:
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
 
 def registrar_alumnos(request): 
    template = 'registrar_alumnos.html' 
-   if request.method == 'GET':
+   if request.method == 'GET': 
       if request.session.get('logueado', False) == True:
-         return redirect('./inicio_usuario')
-      print ('***********entro al GET***********')
+         user = request.session['usuario']
+         if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_alumnos')
+         elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+            return redirect('./inicio_maestros') 
       return render(request, template) 
    elif request.method == 'POST':
       print('***********entro POST**************')
@@ -426,56 +442,66 @@ def validar_datos_alumnos(usuario):
 
 
 def listar_ejercicios_maestros(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'listar_ejercicios_maestros.html'
-      if request.method == 'GET':
-         return render(request,t)
+      user = request.session['usuario']
+      try:
+         maestro = models.Maestros.objects.get(usuario=user)
+         t = 'listar_ejercicios_maestros.html'
+         if request.method == 'GET':
+            return render(request,t)
+      except:
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
 
 def listar_ejercicios_estudiantes(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'listar_ejercicios_estudiantes.html'
-      if request.method == 'GET':
-         return render(request,t)
+      user = request.session['usuario']
+      try:
+         estudiante = models.Alumnos.objects.get(usuario=user)
+         t = 'listar_ejercicios_estudiantes.html'
+         if request.method == 'GET':
+            return render(request,t)
+      except:
+         return HttpResponse('Pagina solo para estudiantes')
    else:
       return HttpResponse('No estas logueado')
 
 def subir_ejercicio(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'subir_ejercicio.html'
-      if request.method == 'GET':
-         return render(request,t)
+      user = request.session['usuario']
+      try:
+         estudiante = models.Alumnos.objects.get(usuario=user)
+         t = 'subir_ejercicio.html'
+         if request.method == 'GET':
+            return render(request,t)
+      except:
+         return HttpResponse('Pagina solo para estudiantes')
    else:
       return HttpResponse('No estas logueado') 
 
 def crear_ejercicios(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'crear_ejercicios.html'
-      if request.method == 'GET':
-         return render(request,t)
+      user = request.session['usuario']
+      try:
+         maestro = models.Maestros.objects.get(usuario=user)
+         t = 'crear_ejercicios.html'
+         if request.method == 'GET':
+            return render(request,t)
+      except:
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
 
 def revisar_ejercicio(request):
-   contador = request.session.get('contador', '')
-   if contador !='':
-      request.session['contador'] = contador + 1
    if request.session.get('logueado', False) == True:
-      t = 'revisar_ejercicio.html'
-      if request.method == 'GET':
-         return render(request,t)
+      user = request.session['usuario']
+      try:
+         maestro = models.Maestros.objects.get(usuario=user)
+         t = 'revisar_ejercicio.html'
+         if request.method == 'GET':
+            return render(request,t)
+      except:
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
