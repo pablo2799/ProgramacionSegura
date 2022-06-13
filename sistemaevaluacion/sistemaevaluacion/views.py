@@ -1,3 +1,4 @@
+from ast import If
 from django.template import Template, Context
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
@@ -479,19 +480,6 @@ def subir_ejercicio(request):
          return HttpResponse('Pagina solo para estudiantes')
    else:
       return HttpResponse('No estas logueado') 
-
-def crear_ejercicios(request):
-   if request.session.get('logueado', False) == True:
-      user = request.session['usuario']
-      try:
-         maestro = models.Maestros.objects.get(usuario=user)
-         t = 'crear_ejercicios.html'
-         if request.method == 'GET':
-            return render(request,t)
-      except:
-         return HttpResponse('Pagina solo para maestros')
-   else:
-      return HttpResponse('No estas logueado')
 
 def revisar_ejercicio(request):
    if request.session.get('logueado', False) == True:

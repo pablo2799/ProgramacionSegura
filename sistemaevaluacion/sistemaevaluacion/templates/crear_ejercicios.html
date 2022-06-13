@@ -1,15 +1,59 @@
 <!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear ejercicios</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
-<html lang="es-MX">
- <head>
-    <title>Crear ejercicio</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        * {
+            font-family: "Roboto";
+        }
 
-    <h1>Crear ejercicio</h1>
-  </head>
-  <div class="row">
-    <a class=" text-white" href="logout">Salir</a>
- </div>
-</html> 
- 
+        body {
+            background-color: #F5F5F5;
+        }
+
+        form {
+            background-color: #FFFFFF;
+            padding: 25px;
+        }
+
+        table {
+            width: 100%; 
+            text-align: center;
+            margin-top: 25px;
+            padding: 25px;
+            background-color: #FFFFFF;
+        }
+
+        table tr td {
+            padding-top: 15px;            
+        }
+    </style>
+</head>
+<body>
+  <h1>Crear ejercicio</h1>
+    <form action="{% url 'modelos:crear_ejercicios' %}" method="POST" enctype="multipart/form-data">
+        <label for="titulo">Introduce el titulo del ejercicio</label>
+        <input type="text" name="titulo"><br>
+        <label for="descripcion">Introduce la descripcion del ejercicio</label>
+        <input type="text" name="descripcion"><br>
+        <label for="entradaprueba">Introduce la entrada de prueba</label>
+        <input type="text" name="entradaprueba"><br>
+        <label for="salidaesperada">Introduce la salida esperada</label>
+        <input type="text" name="salidaesperada"><br>
+        <label for="scriptini">Carga el script de inicializacion</label>
+        <input type="file" name="scriptini"><br>
+        <label for="sscriptcomef">Carga el script de comprobacion de estado final</label>
+        <input type="file" name="scriptcomef"><br>
+        <label for="sscriptcomef">Carga el script de comprobacion de parametros</label>
+        <input type="file" name="scriptcomp"><br>
+        {% csrf_token %}
+        <input type="submit" value="Subir">
+    </form>
+</body>
+</html>

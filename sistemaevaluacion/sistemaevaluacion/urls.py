@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from sistemaevaluacion.views import *
 from django.views.generic import RedirectView
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,11 +28,12 @@ urlpatterns = [
     path('listar_ejercicios_estudiantes',listar_ejercicios_estudiantes),
     path('listar_ejercicios_maestros',listar_ejercicios_maestros),
     path('subir_ejercicio',subir_ejercicio),
-    path('crear_ejercicios',crear_ejercicios),
+    #path('crear_ejercicios',crear_ejercicios),
     path('revisar_ejercicio',revisar_ejercicio),
     path('logout',logout),
     path('verificacion',comprobar_token),
     path('pagina_restringida',pagina_restringida),
     path('inicio_alumnos',inicio_alumnos),
     path('inicio_maestros',inicio_maestros),
+    path('crear_ejercicios', include("modelos.urls")),
 ]

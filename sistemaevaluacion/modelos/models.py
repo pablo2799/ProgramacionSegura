@@ -2,6 +2,8 @@ from mailbox import NoSuchMailboxError
 from django.db import models
 from enum import unique
 
+from pymysql import NULL
+
 class Peticion(models.Model):
     ip = models.GenericIPAddressField(unique=True)
     intentos = models.IntegerField(default=1)
@@ -32,7 +34,17 @@ class Maestros(models.Model): #Clase para maestros que se pueden loguear en el s
     salt = models.CharField(max_length = 16, default="0")
     tipouser = models.CharField(max_length=1,default="m")
 
-class Ejercicios(models.Model):
+class Ejerciciosmaestros(models.Model):
+    titulo = models.CharField(max_length=20)
     descripcion = models.CharField(max_length=255)
-    entrada = models.CharField(max_length=100)
-    salida = models.CharField(max_length=100)
+    entradaPrueba = models.CharField(max_length=100)
+    salidaEsperada = models.CharField(max_length=100)
+    scriptInicial = models.FileField(upload_to='scripts-inicializacion')
+    scriptComprobacionEF = models.FileField(upload_to='scripts-comprobacionEF')
+    scriptComprobacionP = models.FileField(upload_to='scripts-comprobacionP')
+
+class Ejerciciosalumnos(models.Model):
+    titulo = models.CharField(max_length=20)
+    scriptEstudiante = models.FileField(upload_to='scripts-estudiantes')
+    resultadoFinal = models.CharField(max_length=10,default=NULL)
+    resultadoParametros = models.CharField(max_length=10,default=NULL)
