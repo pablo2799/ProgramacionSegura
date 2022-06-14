@@ -279,7 +279,7 @@ def inicio_alumnos(request):
          if request.method == 'GET':
             return render(request,t,{'userlog':username})
       except:
-         return HttpResponse('Pagina solo para alumnos')
+         return HttpResponse('Pagina solo para alumnos del sistema')
    else:
       return HttpResponse('No estas logueado')
 
@@ -292,7 +292,7 @@ def inicio_maestros(request):
          if request.method == 'GET':
             return render(request,t,{'userlog':username})
       except:
-         return HttpResponse('Pagina solo para maestros')
+         return HttpResponse('Pagina solo para maestros del sistema')
    else:
       return HttpResponse('No estas logueado')
 
@@ -445,26 +445,31 @@ def validar_datos_alumnos(usuario):
 def listar_ejercicios_maestros(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
+      listaEjercicios = models.Ejerciciosmaestros.objects.all()
       try:
          maestro = models.Maestros.objects.get(usuario=user)
          t = 'listar_ejercicios_maestros.html'
+         print('************* entro a listar ejercicios maestro')
          if request.method == 'GET':
-            return render(request,t)
+            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
       except:
-         return HttpResponse('Pagina solo para maestros')
+         return HttpResponse('Pagina solo para maestros Registrados')
    else:
       return HttpResponse('No estas logueado')
 
 def listar_ejercicios_estudiantes(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
+      
       try:
          estudiante = models.Alumnos.objects.get(usuario=user)
          t = 'listar_ejercicios_estudiantes.html'
          if request.method == 'GET':
-            return render(request,t)
+            listaEjercicios = models.Ejerciciosmaestros.objects.all()
+            print('********Esta en listar ejercicios estudiantes*******')
+            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
       except:
-         return HttpResponse('Pagina solo para estudiantes')
+         return HttpResponse('Pagina solo para estudiantes Registrados')
    else:
       return HttpResponse('No estas logueado')
 
@@ -475,7 +480,8 @@ def subir_ejercicio(request):
          estudiante = models.Alumnos.objects.get(usuario=user)
          t = 'subir_ejercicio.html'
          if request.method == 'GET':
-            return render(request,t)
+            listaEjercicios = models.Ejerciciosmaestros.objects.all()
+            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
       except:
          return HttpResponse('Pagina solo para estudiantes')
    else:

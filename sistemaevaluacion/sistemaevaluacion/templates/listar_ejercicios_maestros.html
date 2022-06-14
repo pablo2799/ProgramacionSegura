@@ -5,9 +5,38 @@
     <title>Listar ejercicios</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-
     <h1>Listar ejercicios maestros</h1>
+    <style>
+      table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+      border: 1px solid #ddd;
+      }
+
+      th, td {
+      text-align: left;
+      padding: 8px;
+      }
+
+      tr:nth-child(even){background-color: #f2f2f2}
+    </style>
   </head>
+  <body>
+    <table>
+      <tr>
+        <th>Titulo</th>
+        <th>Descripcion</th>
+      </tr>
+      {% for dato in ejercicios %}
+      <tr>
+        <td>{{ dato.titulo }}</td>
+        <td>{{ dato.descripcion }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+
   <div class="row">
     <a class=" text-white" href="logout">Salir</a>
  </div>
