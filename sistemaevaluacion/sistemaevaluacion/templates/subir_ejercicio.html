@@ -1,41 +1,47 @@
 <!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir ejercicio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
-<html lang="es-MX">
-   <head>
-      <title>Subir ejercicio</title>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-      <h1>Subir ejercicio</h1>
-   </head>
-   <body>
-    <div>
-      <h3>Estos son los ejercicios disponibles</h3>
-    </div>
-    <table>
-      <tr>
-        <th>Titulo</th>
-        <th>Descripcion</th>
-        <th>entradaPrueba</th>
-        <th>salidaEsperada</th>
-        <th>scriptInicial</th>
-        <th>scriptComprobacionEF</th>
-        <th>scriptComprobacionP</th>   
-      </tr>
-      {% for dato in ejercicios %}
-      <tr>
-        <td>{{ dato.titulo }}</td>
-        <td>{{ dato.descripcion }}</td>
-        <td>{{ dato.entradaPrueba }}</td>
-        <td>{{ dato.salidaEsperada }}</td>
-        <td>{{ dato.scriptInicial }}</td>
-        <td>{{ dato.scriptComprobacionEF }}</td>
-        <td>{{ dato.scriptComprobacionP }}</td>
-      </tr>
-    
-      {% endfor %}
-    </table>
-  </body>
-   <div class="row">
-      <a class=" text-white" href="logout">Salir</a>
-   </div>
-</html> 
+        * {
+            font-family: "Roboto";
+        }
+
+        body {
+            background-color: #F5F5F5;
+        }
+
+        form {
+            background-color: #FFFFFF;
+            padding: 25px;
+        }
+
+        table {
+            width: 100%; 
+            text-align: center;
+            margin-top: 25px;
+            padding: 25px;
+            background-color: #FFFFFF;
+        }
+
+        table tr td {
+            padding-top: 15px;            
+        }
+    </style>
+</head>
+<body>
+  <h1>Subir ejercicio</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label for="scriptalumno">Carga el script del ejercicio</label>
+        <input type="file" name="scriptalumno"><br>
+        {% csrf_token %}
+        <input type="submit" value="Subir">
+    </form>
+</body>
+</html>

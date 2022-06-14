@@ -44,7 +44,7 @@ class Ejerciciosmaestros(models.Model):
     scriptComprobacionP = models.FileField(upload_to='scripts-comprobacionP')
 
 class Ejerciciosalumnos(models.Model):
-    titulo = models.CharField(max_length=20)
+    titulo = models.ForeignKey(Ejerciciosmaestros,on_delete=models.SET_NULL, null=True, blank=True, max_length=20)
     scriptEstudiante = models.FileField(upload_to='scripts-estudiantes')
     resultadoFinal = models.CharField(max_length=10,default=NULL)
     resultadoParametros = models.CharField(max_length=10,default=NULL)

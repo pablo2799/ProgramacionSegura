@@ -3,7 +3,6 @@ from django.template import Template, Context
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from modelos import models
-#from .models import Peticiones, Alumnos
 import sistemaevaluacion.settings as conf
 import datetime
 from datetime import timezone
@@ -279,7 +278,7 @@ def inicio_alumnos(request):
          if request.method == 'GET':
             return render(request,t,{'userlog':username})
       except:
-         return HttpResponse('Pagina solo para alumnos del sistema')
+         return HttpResponse('Pagina solo para alumnos')
    else:
       return HttpResponse('No estas logueado')
 
@@ -292,7 +291,7 @@ def inicio_maestros(request):
          if request.method == 'GET':
             return render(request,t,{'userlog':username})
       except:
-         return HttpResponse('Pagina solo para maestros del sistema')
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
 
@@ -436,40 +435,33 @@ def validar_datos_alumnos(usuario):
          errores.append('El correo no puede quedar vacio')
       if len(usuario.correo) > 30:
          errores.append('El correo no puede quedar vacio')
- 
       return errores
- 
-      return HttpResponse('Ok') 
-
 
 def listar_ejercicios_maestros(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
-      listaEjercicios = models.Ejerciciosmaestros.objects.all()
       try:
          maestro = models.Maestros.objects.get(usuario=user)
          t = 'listar_ejercicios_maestros.html'
-         print('************* entro a listar ejercicios maestro')
          if request.method == 'GET':
-            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
+            listaEjercicios = models.Ejerciciosmaestros.objects.all()
+            return render(request,t, {'ejercicios':listaEjercicios})
       except:
-         return HttpResponse('Pagina solo para maestros Registrados')
+         return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
 
 def listar_ejercicios_estudiantes(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
-      
       try:
          estudiante = models.Alumnos.objects.get(usuario=user)
          t = 'listar_ejercicios_estudiantes.html'
          if request.method == 'GET':
             listaEjercicios = models.Ejerciciosmaestros.objects.all()
-            print('********Esta en listar ejercicios estudiantes*******')
-            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
+            return render(request, t, {'ejercicios':listaEjercicios})
       except:
-         return HttpResponse('Pagina solo para estudiantes Registrados')
+         return HttpResponse('Pagina solo para estudiantes')
    else:
       return HttpResponse('No estas logueado')
 
@@ -477,15 +469,58 @@ def subir_ejercicio(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
       try:
-         estudiante = models.Alumnos.objects.get(usuario=user)
-         t = 'subir_ejercicio.html'
-         if request.method == 'GET':
-            listaEjercicios = models.Ejerciciosmaestros.objects.all()
-            return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})
+         alumno = models.Alumnos.objects.get(usuario=user)
       except:
-         return HttpResponse('Pagina solo para estudiantes')
+         return HttpResponse('Pagina solo para alumnos')
+      t = 'subir_ejercicio.html'
+      ejercicios = models.Ejerciciosmaestros.objects.all()
+      if request.method == 'GET':
+         return render(request,t,{'ejercicio':ejercicios})
+      elif request.method == 'POST':
+         script = request.FILES["scriptalumno"]
+         ejercicio = models.Ejerciciosalumnos(scriptEstudiante=script)
+         ejercicio.save()
+         return render(request, t)
    else:
       return HttpResponse('No estas logueado') 
+
+def crear_ejercicios(request):
+   if request.session.get('logueado', False) == True:
+      user = request.session['usuario']
+      try:
+         maestro = models.Maestros.objects.get(usuario=user)
+      except:
+         return HttpResponse('Pagina solo para maestros')
+      t = 'crear_ejercicios.html'
+      if request.method == 'GET':
+         return render(request,t)
+      elif request.method == 'POST':
+         try:
+            titulo = request.POST["titulo"]
+            desc = request.POST["descripcion"]
+            entrp = request.POST["entradaprueba"]
+            salesp = request.POST["salidaesperada"]
+            scriptini = request.FILES["scriptini"]
+            scriptcomef = request.FILES["scriptcomef"]
+            scriptcomp = request.FILES["scriptcomp"]
+         except:
+            errores = []
+            errores.append('Debe subir los archivos correctos')
+            contexto = {'errores':errores, 'usuario':'usuario'}
+            return render(request,t,contexto)
+         ejercicio_sin_validar = models.Ejerciciosmaestros(titulo=titulo,descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp,scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
+         errores = validar_datos_crear_ejercicio(ejercicio_sin_validar)
+         if not errores:
+            print('*************NO hubo errores**********+')
+            ejercicio = models.Ejerciciosmaestros(titulo=titulo, descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp, scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
+            ejercicio.save()
+            return render(request, t)
+         else:
+            print('*************Hubo errores****************')
+            contexto = {'errores':errores, 'usuario':'usuario'}
+            return render(request,t,contexto)
+   else:
+      return HttpResponse('No estas logueado')
 
 def revisar_ejercicio(request):
    if request.session.get('logueado', False) == True:
@@ -499,3 +534,23 @@ def revisar_ejercicio(request):
          return HttpResponse('Pagina solo para maestros')
    else:
       return HttpResponse('No estas logueado')
+
+def validar_datos_crear_ejercicio(ejercicio_sin_validar):
+    errores = []
+    if len(ejercicio_sin_validar.titulo) <= 0:
+        errores.append('El titulo no puede quedar vacio')
+    elif len(ejercicio_sin_validar.titulo) > 20:
+        errores.append('El titulo es muy largo')
+    if len(ejercicio_sin_validar.descripcion) <= 0:
+        errores.append('La descripcion no debe quedar vacia')
+    elif len(ejercicio_sin_validar.descripcion) > 255:
+        errores.append('La descripcion es muy larga')
+    if len(ejercicio_sin_validar.entradaPrueba) <= 0:
+        errores.append('La entradaPrueba no debe quedar vacia')
+    elif len(ejercicio_sin_validar.entradaPrueba) > 100:
+        errores.append('La entradaPrueba es muy larga')
+    if len(ejercicio_sin_validar.salidaEsperada) <= 0:
+        errores.append('La salidaEsperada no debe quedar vacia')
+    elif len(ejercicio_sin_validar.salidaEsperada) > 100:
+        errores.append('La salidaEsperada es muy larga')
+    return errores

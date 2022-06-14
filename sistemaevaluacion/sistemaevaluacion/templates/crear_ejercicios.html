@@ -1,59 +1,57 @@
-<!DOCTYPE html>
-{% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear ejercicios</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+{% extends 'base.html' %}
+{% block titulo %}Crear ejercicio{% endblock %}
+{% block encabezado %}Crear ejercicio{% endblock %}
+{% block contenido %}
+{%  if errores %}
+<div class="container" id="errores">
+    <div class="card bg-danger text-white">
+        Errores encontrados:
+    </div>
+    <div class="alert alert-danger">
+        <ol>
+            {% for error in errores %}
+            <li>
+                {{ error }}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+{%  endif %}
 
-        * {
-            font-family: "Roboto";
-        }
-
-        body {
-            background-color: #F5F5F5;
-        }
-
-        form {
-            background-color: #FFFFFF;
-            padding: 25px;
-        }
-
-        table {
-            width: 100%; 
-            text-align: center;
-            margin-top: 25px;
-            padding: 25px;
-            background-color: #FFFFFF;
-        }
-
-        table tr td {
-            padding-top: 15px;            
-        }
-    </style>
-</head>
-<body>
-  <h1>Crear ejercicio</h1>
-    <form action="{% url 'modelos:crear_ejercicios' %}" method="POST" enctype="multipart/form-data">
-        <label for="titulo">Introduce el titulo del ejercicio</label>
-        <input type="text" name="titulo"><br>
-        <label for="descripcion">Introduce la descripcion del ejercicio</label>
-        <input type="text" name="descripcion"><br>
-        <label for="entradaprueba">Introduce la entrada de prueba</label>
-        <input type="text" name="entradaprueba"><br>
-        <label for="salidaesperada">Introduce la salida esperada</label>
-        <input type="text" name="salidaesperada"><br>
-        <label for="scriptini">Carga el script de inicializacion</label>
-        <input type="file" name="scriptini"><br>
-        <label for="sscriptcomef">Carga el script de comprobacion de estado final</label>
-        <input type="file" name="scriptcomef"><br>
-        <label for="sscriptcomef">Carga el script de comprobacion de parametros</label>
-        <input type="file" name="scriptcomp"><br>
-        {% csrf_token %}
-        <input type="submit" value="Subir">
-    </form>
-</body>
-</html>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="contenedor">
+        <div class="mb-3 mt-3">
+            <label for="titulo">Introduce el titulo del ejercicio</label>
+           <input type="text" name="titulo"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="descripcion">Introduce la descripcion del ejercicio</label>
+           <input type="text" name="descripcion"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="entradaprueba">Introduce la entrada de prueba</label>
+           <input type="text" name="entradaprueba"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="salidaesperada">Introduce la salida esperada</label>
+           <input type="text" name="salidaesperada"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="scriptin">Carga el script de inicializacion</label><br>
+            <input type="file" name="scriptini"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="sscriptcome">Carga el script de comprobacion de estado final</label><br>
+            <input type="file" name="scriptcomef"><br>
+        </div>
+        <div class="mb-3 mt-3">
+            <label for="sscriptcome">Carga el script de comprobacion de parametros</label><br>
+            <input type="file" name="scriptcomp"><br>
+        </div>
+         {% csrf_token %}
+         <input type="submit" value="Subir">
+    </div>
+</form>
+{% endblock %}

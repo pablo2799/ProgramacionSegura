@@ -19,7 +19,7 @@ def crear_ejercicios(request):
             salesp = request.POST["salidaesperada"]
             scriptini = request.FILES["scriptini"]
             scriptcomef = request.FILES["scriptcomef"]
-            scriptcomp = request.FILES["scriptcomp"]
+            scriptcomp = request.FILES["scriptini"]
             ejercicio = models.Ejerciciosmaestros(titulo=titulo,descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp,scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
             ejercicio.save()
             return render(request, 'crear_ejercicios.html')
