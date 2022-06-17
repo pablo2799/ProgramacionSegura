@@ -33,12 +33,21 @@
       </tr>
       {% for dato in ejercicios %}
       <tr>
-        <td><a class=" text-white" href="subir_ejercicio">{{ dato.titulo }}</a></td>
+        <td><a class=" text-white">{{ dato.titulo }}</a></td>
         <td>{{ dato.descripcion }}</td>
       </tr>
-    
       {% endfor %}
     </table>
+    <form action="subir_ejercicio" method="GET">{% csrf_token %}
+      <label for="ejercicio"><h3>Selecciona un ejercicio:</h3>
+        <select name="ejercicio" required>
+          {% for ejercicio in ejercicios %}
+            <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <input type="submit" value="Ir al ejercicio"/>
+    </form>
   </body>
   <div class="row">
     <a class=" text-white" href="logout">Salir</a>

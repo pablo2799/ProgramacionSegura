@@ -33,7 +33,6 @@ urlpatterns = [
     path('revisar_ejercicio',revisar_ejercicio),
     path('logout',logout),
     path('verificacion',comprobar_token),
-    path('pagina_restringida',pagina_restringida),
     path('inicio_alumnos',inicio_alumnos),
     path('inicio_maestros',inicio_maestros),
 ]
