@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-
-<html lang="es-MX">
-  <head>
-    <title>Listar ejercicios</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <h1>Listar ejercicios estudiantes</h1>
+{% extends 'base_a.html' %}
+{% block titulo %}Listar ejercicios{% endblock %}
+{% block estilo_interno%}
     <style>
       table {
       border-collapse: collapse;
@@ -21,35 +16,29 @@
 
       tr:nth-child(even){background-color: #f2f2f2}
     </style>
-  </head>
-  <body>
-    <div>
-      <h3>Estos son los ejercicios disponibles</h3>
-    </div>
-    <table>
+{% endblock %}
+
+{% block encabezado %}Lista de ejercicios{% endblock %}
+{% block subtitulo%}
+<h5>Lista de ejercicios</h5>
+<p>Este apartado muestra...</p>
+{% endblock %}
+{% block contenido%}
+  <table>
+    <tr>
+      <th>Titulo</th>
+      <th>Descripcion</th>
+    </tr>
+    {% if ejercicios_e %}
+      {% for dato in ejercicios_e %}
       <tr>
-        <th>Titulo</th>
-        <th>Descripcion</th>
-      </tr>
-      {% for dato in ejercicios %}
-      <tr>
-        <td><a class=" text-white">{{ dato.titulo }}</a></td>
+        <td><a class="nav-link" href="{{dato.get_absolute_url}}">{{ dato.titulo }}</a></td>
         <td>{{ dato.descripcion }}</td>
       </tr>
       {% endfor %}
+    {% else %}
+      <h2>Por el momento no hay ejercicios disponibles</h2>
+    {%endif%}
     </table>
-    <form action="subir_ejercicio" method="GET">{% csrf_token %}
-      <label for="ejercicio"><h3>Selecciona un ejercicio:</h3>
-        <select name="ejercicio" required>
-          {% for ejercicio in ejercicios %}
-            <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <input type="submit" value="Ir al ejercicio"/>
-    </form>
-  </body>
-  <div class="row">
-    <a class=" text-white" href="logout">Salir</a>
- </div>
-</html> 
+{% endblock %}
+

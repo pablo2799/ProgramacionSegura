@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-
-<html lang="es-MX">
- <head>
-    <title>Listar ejercicios</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <h1>Ejercicios creados</h1>
+{% extends 'base_m.html' %}
+{% block titulo %}Listar ejercicios{% endblock %}
+{% block estilo_interno%}
     <style>
       table {
       border-collapse: collapse;
@@ -21,23 +16,28 @@
 
       tr:nth-child(even){background-color: #f2f2f2}
     </style>
-  </head>
-  <body>
-    <table>
-      <tr>
-        <th>Titulo</th>
-        <th>Descripcion</th>
-      </tr>
+{% endblock %}
+
+{% block encabezado %}Lista de ejercicios{% endblock %}
+{% block subtitulo%}
+<h5>Lista de ejercicios</h5>
+<p>Este apartado muestra...</p>
+{% endblock %}
+{% block contenido%}
+  <table>
+    <tr>
+      <th>Titulo</th>
+      <th>Descripcion</th>
+    </tr>
+    {% if ejercicios%}
       {% for dato in ejercicios %}
       <tr>
         <td>{{ dato.titulo }}</td>
         <td>{{ dato.descripcion }}</td>
       </tr>
       {% endfor %}
+    {% else %}
+      <h2>No tienes ejercicios registrados</h2>
+    {%endif%}
     </table>
-  </body>
-
-  <div class="row">
-    <a class=" text-white" href="logout">Salir</a>
- </div>
-</html> 
+{% endblock %}

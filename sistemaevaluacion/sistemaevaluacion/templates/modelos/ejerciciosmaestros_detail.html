@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>detalle del ejercicio</title>
+</head>
+<body>
+	<h3>Pagina /modelos/ejerciciosmaestros_detail.html </h3>
+	<h1>Subir ejercicio: {{ejerciciosmaestros.titulo}} </h1>
+	<div>
+		<p><strong>Titulo:</strong>{{ejerciciosmaestros.titulo}} </p>
+		<p><strong>Descripcion:</strong>{{ejerciciosmaestros.descripcion}} </p>
+	</div>
+	
+	<form method="POST" enctype="multipart/form-data">
+        <label for="scriptalumno">Carga el script del ejercicio</label>
+        <input type="file" name="scriptalumno"><br>
+        {% csrf_token %}
+        <input type="submit" value="Subir">
+    </form>
+
+</body>
+</html>

@@ -1,19 +1,18 @@
-<!DOCTYPE html>
-
-<html lang="es-MX">
-   <head>
-      <title>Sistema de evaluacion</title>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-   </head>
-   <body>
-      <h1>Bienvenido {{userlog}}</h1>
-      <div>
-         <h2>¿Qué quieres hacer?</h2>
-         <a class=" text-white" href="listar_ejercicios_estudiantes">Listar ejercicios</a>
-      </div>
-   </body>
-   <div class="row">
-      <a class=" text-white" href="logout">Salir</a>
+{% extends 'base_a.html' %}
+{% block titulo %}Inicio Alumno{% endblock %}
+{% block encabezado %}Inicio 
+<h2>Bienvenido {{userlog}}</h2>
+{% endblock %}
+{% block subtitulo%}
+<h5>Funcionamiento</h5>
+<p>Esta plataforma...</p>
+{% endblock %}
+{% block contenido %}
+   <div>
+      <h2>¿Qué quieres hacer?</h2>
    </div>
-</html>
+   <div>
+      <a class="nav-link" href="listar_ejercicios_estudiantes">Lista de ejercicios</a>
+      
+   </div>
+{% endblock %}

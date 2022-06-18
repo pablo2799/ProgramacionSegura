@@ -4,6 +4,8 @@ from enum import unique
 
 from pymysql import NULL
 
+from django.urls import reverse
+
 class Peticion(models.Model):
     ip = models.GenericIPAddressField(unique=True)
     intentos = models.IntegerField(default=1)
@@ -42,6 +44,18 @@ class Ejerciciosmaestros(models.Model):
     scriptInicial = models.FileField(upload_to='scripts-inicializacion')
     scriptComprobacionEF = models.FileField(upload_to='scripts-comprobacionEF')
     scriptComprobacionP = models.FileField(upload_to='scripts-comprobacionP')
+
+    def __str__(self):
+        """
+        String que representa al objeto Book
+        """
+        return self.titulo
+
+    def get_absolute_url(self):
+        """
+        Devuelve el URL a una instancia particular de Book
+        """
+        return reverse('ejercicio-detail', args=[str(self.id)])
 
 class Ejerciciosalumnos(models.Model):
     alumno = models.ForeignKey(Alumnos,on_delete=models.SET_NULL, null=True, blank=True, max_length=50)

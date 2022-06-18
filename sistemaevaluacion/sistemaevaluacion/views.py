@@ -1,9 +1,7 @@
 from ast import If
 from django.template import Template, Context
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from fastapi import File
-from sqlalchemy import null
+from django.http import HttpResponse, JsonResponse, Http404
 from modelos import models
 import sistemaevaluacion.settings as conf
 import datetime
@@ -182,9 +180,18 @@ def password_valido(contrasena_ingresada, contrasena_guardada, salt):
       return False
 
 def logout(request):
-   request.session['logueado'] = False
-   request.session.flush() #Termina la sesión
-   return redirect('/login') #Redirige a la página de inicio de sesión
+    request.session['logueado'] = False
+    request.session.flush() #Termina la sesión
+    return redirect('/login') #Redirige a la página de inicio de sesión
+
+def pagina_restringida(request):
+   contador = request.session.get('contador', '')
+   if contador !='':
+      request.session['contador'] = contador + 1
+   if request.session.get('logueado', False) == True:
+      return HttpResponse('puedes entrar %s' % contador)
+   else:
+      return HttpResponse('EStas bloqueado %s' % contador)
 
 def comprobar_token(request):
    t = 'verificacion.html'
@@ -199,6 +206,9 @@ def comprobar_token(request):
                return redirect('./inicio_maestros') 
          return render(request, t)
       elif request.method == 'POST':
+         #tipousuario_a= models.Alumnos.objects.get(usuario=username)
+         #tipousuario_m= models.Maestros.objects.get(usuario=username)
+         #tipousuario = request.POST.get('tipousuario', '').strip()
          token1 = request.POST.get('token', '').strip()
          try:
             if models.Alumnos.objects.filter(usuario__exact=username).count()>0:
@@ -267,11 +277,11 @@ def inicio_alumnos(request):
       username = request.session['usuario']
       try:
          maestro = models.Alumnos.objects.get(usuario=username)
+         t = 'inicio_alumnos.html'
+         if request.method == 'GET':
+            return render(request,t,{'userlog':username})
       except:
          return HttpResponse('Pagina solo para alumnos')
-      t = 'inicio_alumnos.html'
-      if request.method == 'GET':
-         return render(request,t,{'userlog':username})
    else:
       return HttpResponse('No estas logueado')
 
@@ -280,11 +290,11 @@ def inicio_maestros(request):
       username = request.session['usuario']
       try:
          maestro = models.Maestros.objects.get(usuario=username)
+         t = 'inicio_maestros.html'
+         if request.method == 'GET':
+            return render(request,t,{'userlog':username})
       except:
          return HttpResponse('Pagina solo para maestros')
-      t = 'inicio_maestros.html'
-      if request.method == 'GET':
-         return render(request,t,{'userlog':username})
    else:
       return HttpResponse('No estas logueado')
 
@@ -372,7 +382,10 @@ def validar_datos_maestros(usuario):
          errores.append('El correo no puede quedar vacio')
       if len(usuario.correo) > 30:
          errores.append('El correo no puede quedar vacio')
+ 
       return errores
+ 
+      return HttpResponse('Ok')
 
 def validar_datos_alumnos(usuario):
       caracteres_especiales = "º!#$%&/()=+-*"
@@ -432,12 +445,12 @@ def listar_ejercicios_maestros(request):
       user = request.session['usuario']
       try:
          maestro = models.Maestros.objects.get(usuario=user)
+         t = 'listar_ejercicios_maestros.html'
+         if request.method == 'GET':
+            listaEjercicios = models.Ejerciciosmaestros.objects.all()
+            return render(request,t, {'ejercicios':listaEjercicios})
       except:
          return HttpResponse('Pagina solo para maestros')
-      t = 'listar_ejercicios_maestros.html'
-      if request.method == 'GET':
-         listaEjercicios = models.Ejerciciosmaestros.objects.all()
-         return render(request,t, {'ejercicios':listaEjercicios})
    else:
       return HttpResponse('No estas logueado')
 
@@ -446,15 +459,63 @@ def listar_ejercicios_estudiantes(request):
       user = request.session['usuario']
       try:
          estudiante = models.Alumnos.objects.get(usuario=user)
+         t = 'listar_ejercicios_estudiantes.html'
+         if request.method == 'GET':
+            listaEjercicios = models.Ejerciciosmaestros.objects.all()
+            print('*********************guardo en listaEjercicios******')
+            return render(request, t, {'ejercicios_e':listaEjercicios})
       except:
          return HttpResponse('Pagina solo para estudiantes')
-      t = 'listar_ejercicios_estudiantes.html'
-      if request.method == 'GET':
-         listaEjercicios = models.Ejerciciosmaestros.objects.all()
-         return render(request, t, {'ejercicios':listaEjercicios})
    else:
       return HttpResponse('No estas logueado')
+   
+#################################################################
+"""
+from django.views import generic
+class EjerciciosListView(generic.ListView):#No se usa, Es para listar todos los ejercicios
+   model = models.Ejerciciosmaestros
 
+
+class EjerciciosDetailView(generic.DetailView):#No se usa, pero es para la pagina de subir ejercicio
+   model = models.Ejerciciosmaestros
+
+"""
+def Ejercicio_detalle(request,pk):#Muestra a detalle el ejercicio seleccionado y la opcion de subir ejercicio
+   if request.session.get('logueado', False) == True:
+      user = request.session['usuario']
+      try:
+         alumno = models.Alumnos.objects.get(usuario=user)
+      except:
+         return HttpResponse('Pagina solo para alumnos')
+      t = 'modelos/subir_ejercicio.html'
+      #ejercicio_id=models.Ejerciciosmaestros.objects.get(pk=pk)
+      if request.method == 'GET':
+         try:
+            ejercicio_id = models.Ejerciciosmaestros.objects.get(pk=pk)
+            print('********Entro a get de Ejercicio_detalle, -> Si hay ejercicios**********')
+            return render(request,t,{'ejercicios':ejercicio_id})
+         except models.Ejerciciosmaestros.DoesNotExist:
+            print('********Entro a get de Ejercicio_detalle, -> No hay ejercicios**********')
+            raise Http404("No hay ejercicios registrados")
+            #return HttpResponse('No hay ejercicios disponibles')
+      elif request.method == 'POST':
+         ejercicio_id=models.Ejerciciosmaestros.objects.get(pk=pk)
+         try:
+            script = request.FILES["scriptalumno"]
+         except:
+            #return redirect('listar_ejercicios_estudiantes')
+            return HttpResponse('Debe subir un archivo')
+         ejercicioalumno = models.Ejerciciosalumnos(alumno=alumno, ejercicio=ejercicio_id, scriptEstudiante=script)
+         ejercicioalumno.save()
+         print("El alumno ",ejercicioalumno.alumno.usuario,"hizo la tarea ",ejercicioalumno.ejercicio.titulo,"La ruta del script de inicializacion es ",ejercicioalumno.ejercicio.scriptInicial)
+         #return render(request,t, context={'ejercicios':ejercicio_id,})
+         return redirect('listar_ejercicios_estudiantes')   
+   else:
+      return HttpResponse('No estas logueado') 
+
+
+#################################################################
+"""
 def subir_ejercicio(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
@@ -463,23 +524,18 @@ def subir_ejercicio(request):
       except:
          return HttpResponse('Pagina solo para alumnos')
       t = 'subir_ejercicio.html'
-      idejercicio = request.GET["ejercicio"]
-      ejercicio = models.Ejerciciosmaestros.objects.get(id=idejercicio)
       if request.method == 'GET':
-         return render(request,t,{'ejercicio':ejercicio})
+         #datoID= request.parameter.get['id']
+         ejercicios = models.Ejerciciosmaestros.objects.get(titulo='imagen1')
+         return render(request,t,{'ejercicios':ejercicios})
       elif request.method == 'POST':
-         try:
-            script = request.FILES["scriptalumno"]
-         except:
-            print ("No se subio el ejercicio")
-            return redirect('./listar_ejercicios_estudiantes')
-         ejercicioalumno = models.Ejerciciosalumnos(alumno=alumno,ejercicio=ejercicio, scriptEstudiante=script)
-         ejercicioalumno.save()
-         print("El alumno ",ejercicioalumno.alumno.usuario,"hizo la tarea ",ejercicioalumno.ejercicio.titulo,"La ruta del script de inicializacion es ",ejercicioalumno.ejercicio.scriptInicial)
-         return redirect('./listar_ejercicios_estudiantes')
+         script = request.FILES["scriptalumno"]
+         ejercicio = models.Ejerciciosalumnos(scriptEstudiante=script)
+         ejercicio.save()
+         return render(request, t)
    else:
       return HttpResponse('No estas logueado') 
-
+"""
 def crear_ejercicios(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']

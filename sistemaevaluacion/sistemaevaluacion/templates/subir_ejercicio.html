@@ -36,9 +36,12 @@
     </style>
 </head>
 <body>
-  <h1>Subir ejercicio</h1>
-  <h2>Ejercicio: {{ejercicio.titulo}}</h2>
-  <h4> Descripcion: {{ejercicio.descripcion}}</h4>
+
+    <h1>Subir ejercicio {{ ejercicios.titulo }} | pagina: subir_ejercicio.html</h1>
+    <div>
+        <p><b>Descripcion: </b>{{ ejercicios.descripcion}}</p>
+        <p><b>Entrada de prueba: </b>{{ ejercicios.entradaPrueba}}</p>
+    </div>
     <form method="POST" enctype="multipart/form-data">
         <label for="scriptalumno">Carga el script del ejercicio</label>
         <input type="file" name="scriptalumno"><br>
