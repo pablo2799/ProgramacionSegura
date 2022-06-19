@@ -99,13 +99,23 @@ def tiempo_de_vida(tiempo_registrado):
    return tiempo_transcurrido.seconds
 
 
-def mandar_mensaje_bot(request):
+def mandar_mensaje_bot(request, tipousuario):###########3
    user = request.session['usuario']
    fecha_actual = datetime.datetime.now()
-   if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
-      obtener_datos = models.Alumnos.objects.get(usuario=user)
-   elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
-      obtener_datos = models.Maestros.objects.get(usuario=user)
+   ##########
+   template = 'login.html' 
+   if tipousuario=='alumno' :
+      if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
+         obtener_datos = models.Alumnos.objects.get(usuario=user)
+         print("*******encontro en tipo usuario alumno|mandar_mensaje_bot")
+   elif tipousuario =='maestro':
+      if models.Maestros.objects.filter(usuario__exact=user).count()>0:
+         obtener_datos = models.Maestros.objects.get(usuario=user)
+         print("*******encontro en tipo usuario maestro|mandar_mensaje_bot")
+   else:
+      errores = ['No se encontro el usuario']
+      return render(request, template, {'errores': errores})
+   ###############
    mensaje = ''.join(random.sample(string.ascii_letters + string.digits, 4))
    send_text = 'https://api.telegram.org/bot' + obtener_datos.tokenId + '/sendMessage?chat_id=' + obtener_datos.chatId + '&parse_mode=Markdown&text=' + mensaje
    response = requests.get(send_text)
@@ -141,10 +151,10 @@ def login(request):
                if password_valido(password, usuario.password, usuario.salt):
                   print('*******Se validaron las contraseñas******')
                   request.session['usuario'] = usuario2
-                  mandar_mensaje_bot(request)
+                  mandar_mensaje_bot(request, tipousuario)
                   return redirect('./verificacion')
                else:
-                  errores = ['El Usuario o la Contraseña Son incorrectos']
+                  errores = ['El Usuario o la Contraseña Son incorrectos de alumnos']
                   return render(request, template, {'errores': errores})
             elif tipousuario =='maestro':
                print ('ENtro en maestro')
@@ -152,13 +162,14 @@ def login(request):
                if password_valido(password, usuario.password, usuario.salt):
                   print('*******Se validaron las contraseñas******')
                   request.session['usuario'] = usuario2
-                  mandar_mensaje_bot(request)
-                  return redirect('./verificacion')
+                  mandar_mensaje_bot(request, tipousuario)  ################
+                  print("******Redirecciona a verificacion_maestros**********")
+                  return redirect('./verificacion_maestros')   ################3
                else:
                   errores = ['El Usuario o la Contraseña Son incorrectos de maestro']
                   return render(request, template, {'errores': errores})
             else:
-               errores = ['El Usuario o la Contraseña Son incorrectos de maestro 2']
+               errores = ['El Usuario o la Contraseña Son incorrectos']
                return render(request, template, {'errores': errores})
          except:
             print ('NO entro ni en alumno ni en maestro') 
@@ -192,6 +203,59 @@ def pagina_restringida(request):
       return HttpResponse('puedes entrar %s' % contador)
    else:
       return HttpResponse('EStas bloqueado %s' % contador)
+##################################
+def comprobar_token_2(request):############para maestros
+   t = 'verificacion_maestros.html'
+   try:
+      username = request.session['usuario']
+      if request.method == 'GET': 
+         print("*********entro al get del comprobar_token_2**********", username)
+         if request.session.get('logueado', False) == True:
+            user = request.session['usuario']
+            print("*********Se obtuvo el usuario", user)
+            if models.Maestros.objects.filter(usuario__exact=user).count()>0:###############
+               return redirect('./inicio_maestros')
+            else:
+               return HttpResponse('Hubo problema')
+            """
+            elif models.Maestros.objects.filter(usuario__exact=user).count()>0:
+               return redirect('./inicio_maestros') 
+            """
+         return render(request, t)
+        
+      elif request.method == 'POST':
+         token1 = request.POST.get('token', '').strip()
+         try:
+            """
+            if models.Alumnos.objects.filter(usuario__exact=username).count()>0:
+               obtener_datos = models.Alumnos.objects.get(token=token1)
+               quieneres='alumno'
+            """
+            if models.Maestros.objects.filter(usuario__exact=username).count()>0:
+               obtener_datos = models.Maestros.objects.get(token=token1)
+               quieneres='maestro'
+            tiempoV = tiempo_de_vida(obtener_datos.vidaToken)
+            print('se obtiene el tiempo que transcurrido | comprobar_token_2:', tiempoV)
+            if (tiempoV > 60):
+               print('Se manda tiempo expirado')
+               errores = ['Tiempo de vida del token expirado']
+               return render(request, t, {'errores': errores}) 
+            request.session['logueado'] = True 
+            #request.session['usuario'] = username
+            if quieneres == 'maestro': ####################
+               print("*********redirecciona a inicio_maestros | comprobar_token_2*****")
+               return redirect('./inicio_maestros')
+
+            """elif quieneres == 'maestro':
+               return redirect('./inicio_maestros')
+            """
+         except:
+            errores = ['Token de Telegram inválido'] #No se usa
+            return redirect('./logout')
+   except:
+      #return HttpResponse("Hubo un errror")
+      return redirect('./login')
+##################################
 
 def comprobar_token(request):
    t = 'verificacion.html'
@@ -227,8 +291,10 @@ def comprobar_token(request):
             request.session['usuario'] = username
             if quieneres == 'alumno': 
                return redirect('./inicio_alumnos')
+            """
             elif quieneres == 'maestro':
                return redirect('./inicio_maestros')
+            """
          except:
             errores = ['Token de Telegram inválido']
             return redirect('./logout')
@@ -276,9 +342,15 @@ def inicio_alumnos(request):
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
       try:
-         maestro = models.Alumnos.objects.get(usuario=username)
+         alumno = models.Alumnos.objects.get(usuario=username)
+         print("tipousuario: ",alumno.tipouser)
          t = 'inicio_alumnos.html'
          if request.method == 'GET':
+            """
+            if alumno.tipousuario == "a": ##################
+               print("**********Dentro del if del GET inicio_alumnos*************")
+            """
+
             return render(request,t,{'userlog':username})
       except:
          return HttpResponse('Pagina solo para alumnos')
@@ -288,13 +360,18 @@ def inicio_alumnos(request):
 def inicio_maestros(request):
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
+      print("usuario: ",username)
       try:
+         print("entro al try: ",username)
          maestro = models.Maestros.objects.get(usuario=username)
+         print("**********Dentro del try de inicio_maestros*************")
+         print("tipousuario: ",maestro.tipouser)
          t = 'inicio_maestros.html'
          if request.method == 'GET':
-            return render(request,t,{'userlog':username})
+            if maestro.tipouser == "m": ######
+               return render(request,t,{'userlog':username}) #########
       except:
-         return HttpResponse('Pagina solo para maestros')
+         return HttpResponse('Pagina solo para maestros, except')
    else:
       return HttpResponse('No estas logueado')
 
@@ -447,8 +524,9 @@ def listar_ejercicios_maestros(request):
          maestro = models.Maestros.objects.get(usuario=user)
          t = 'listar_ejercicios_maestros.html'
          if request.method == 'GET':
-            listaEjercicios = models.Ejerciciosmaestros.objects.all()
-            return render(request,t, {'ejercicios':listaEjercicios})
+            if maestro.tipouser == "m":   ###################
+               listaEjercicios = models.Ejerciciosmaestros.objects.all()
+               return render(request,t, {'ejercicios':listaEjercicios})
       except:
          return HttpResponse('Pagina solo para maestros')
    else:
@@ -541,36 +619,38 @@ def crear_ejercicios(request):
       user = request.session['usuario']
       try:
          maestro = models.Maestros.objects.get(usuario=user)
+         t = 'crear_ejercicios.html'
+         if request.method == 'GET':
+            if maestro.tipouser == "m": ########################
+               return render(request,t)
+         elif request.method == 'POST':
+            try:
+               titulo = request.POST["titulo"]
+               desc = request.POST["descripcion"]
+               entrp = request.POST["entradaprueba"]
+               salesp = request.POST["salidaesperada"]
+               scriptini = request.FILES["scriptini"]
+               scriptcomef = request.FILES["scriptcomef"]
+               scriptcomp = request.FILES["scriptcomp"]
+            except:
+               errores = []
+               errores.append('Debe subir los archivos correctos')
+               contexto = {'errores':errores, 'usuario':'usuario'}
+               return render(request,t,contexto)
+            ejercicio_sin_validar = models.Ejerciciosmaestros(titulo=titulo,descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp,scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
+            errores = validar_datos_crear_ejercicio(ejercicio_sin_validar)
+            if not errores:
+               print('*************NO hubo errores**********+')
+               ejercicio = models.Ejerciciosmaestros(titulo=titulo, descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp, scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
+               ejercicio.save()
+               return render(request, t)
+            else:
+               print('*************Hubo errores****************')
+               contexto = {'errores':errores, 'usuario':'usuario'}
+               return render(request,t,contexto)
       except:
          return HttpResponse('Pagina solo para maestros')
-      t = 'crear_ejercicios.html'
-      if request.method == 'GET':
-         return render(request,t)
-      elif request.method == 'POST':
-         try:
-            titulo = request.POST["titulo"]
-            desc = request.POST["descripcion"]
-            entrp = request.POST["entradaprueba"]
-            salesp = request.POST["salidaesperada"]
-            scriptini = request.FILES["scriptini"]
-            scriptcomef = request.FILES["scriptcomef"]
-            scriptcomp = request.FILES["scriptcomp"]
-         except:
-            errores = []
-            errores.append('Debe subir los archivos correctos')
-            contexto = {'errores':errores, 'usuario':'usuario'}
-            return render(request,t,contexto)
-         ejercicio_sin_validar = models.Ejerciciosmaestros(titulo=titulo,descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp,scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
-         errores = validar_datos_crear_ejercicio(ejercicio_sin_validar)
-         if not errores:
-            print('*************NO hubo errores**********+')
-            ejercicio = models.Ejerciciosmaestros(titulo=titulo, descripcion=desc, entradaPrueba=entrp, salidaEsperada=salesp, scriptInicial=scriptini, scriptComprobacionEF=scriptcomef, scriptComprobacionP=scriptcomp)
-            ejercicio.save()
-            return render(request, t)
-         else:
-            print('*************Hubo errores****************')
-            contexto = {'errores':errores, 'usuario':'usuario'}
-            return render(request,t,contexto)
+      
    else:
       return HttpResponse('No estas logueado')
 
@@ -581,7 +661,8 @@ def revisar_ejercicio(request):
          maestro = models.Maestros.objects.get(usuario=user)
          t = 'revisar_ejercicio.html'
          if request.method == 'GET':
-            return render(request,t)
+            if maestro.tipouser == "m":   ####################
+               return render(request,t)
       except:
          return HttpResponse('Pagina solo para maestros')
    else:
