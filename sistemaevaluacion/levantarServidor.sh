@@ -7,7 +7,4 @@ for linea in $(ccdecrypt -c "$1"); do
 	export "$linea"
 done
 
-
-python3 manage.py makemigrations
-python3 manage.py migrate
 python3 manage.py runserver

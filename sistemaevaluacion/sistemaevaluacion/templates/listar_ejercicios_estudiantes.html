@@ -29,16 +29,25 @@
       <th>Titulo</th>
       <th>Descripcion</th>
     </tr>
-    {% if ejercicios_e %}
-      {% for dato in ejercicios_e %}
+    {% if ejercicios %}
+      {% for dato in ejercicios %}
       <tr>
-        <td><a class="nav-link" href="{{dato.get_absolute_url}}">{{ dato.titulo }}</a></td>
+        <td><a class="nav-link">{{ dato.titulo }}</a></td>
         <td>{{ dato.descripcion }}</td>
       </tr>
+      <form action="subir_ejercicio" method="GET">{% csrf_token %}
+        <label for="ejercicio"><h3>Selecciona un ejercicio:</h3>
+          <select name="ejercicio" required>
+            {% for ejercicio in ejercicios %}
+              <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <input type="submit" value="Ir al ejercicio"/>
+      </form>
       {% endfor %}
     {% else %}
       <h2>Por el momento no hay ejercicios disponibles</h2>
     {%endif%}
     </table>
 {% endblock %}
-
