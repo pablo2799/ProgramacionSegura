@@ -1,15 +1,51 @@
-<!DOCTYPE html>
+{% extends 'base_m.html' %}
+{% block titulo %}Revisar ejercicios{% endblock %}
+{% block encabezado %}Revisar ejercicios
+{% endblock %}
+{% block subtitulo%}
+<h5>Revision</h5>
+<p>Este apartado muestra...</p>
+{% endblock %}
+{% block estilo_interno%}
+    <style>
+      table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+      border: 1px solid #ddd;
+      }
 
-<html lang="es-MX">
- <head>
-    <title>Revisar ejercicio</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+      th, td {
+      text-align: left;
+      padding: 8px;
+      }
 
-    <h1>Revisar ejercicio</h1>
-  </head>
-  <div class="row">
-    <a class=" text-white" href="logout">Salir</a>
- </div>
-</html> 
- 
+      tr:nth-child(even){background-color: #f2f2f2}
+    </style>
+{% endblock %}
+{% block contenido %}
+  <div>
+    <h2>Aqui se muestran los resultados</h2>
+  </div>
+  <table>
+    <tr>
+      <th>Ejercicio</th>
+      <th>Alumno</th>
+      <th>Evaluación de parámetros</th>
+      <th>Resultado final</th>
+    </tr>
+    {% if ejercicios%}
+      {% for dato in ejercicios %}
+      <tr>
+        <td>{{ dato.ejercicio.titulo }}</td>
+        <td>{{ dato.alumno.usuario }}</td>
+        <td>{{ dato.resultadoParametros }}</td>
+        <td>{{ dato.resultadoFinal }}</td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <h2>No hay resultados de ejercicios</h2>
+    {%endif%}
+  </table>
+{% endblock %}
+

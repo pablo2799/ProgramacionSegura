@@ -1,6 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'base_m.html' %}
 {% block titulo %}Crear ejercicio{% endblock %}
 {% block encabezado %}Crear ejercicio{% endblock %}
+{% block subtitulo%}
+<h5>Como crear un ejercicio</h5>
+<p>Para crear un ejercicio...</p>
+{% endblock %}
 {% block contenido %}
 {%  if errores %}
 <div class="container" id="errores">
@@ -19,39 +23,61 @@
 </div>
 {%  endif %}
 
+<h3>Formulario</h3>
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="contenedor">
         <div class="mb-3 mt-3">
             <label for="titulo">Introduce el titulo del ejercicio</label>
-           <input type="text" name="titulo"><br>
+            <div class="mb-3">
+                <input type="text" name="titulo"><br>
+            </div>
+           
         </div>
         <div class="mb-3 mt-3">
             <label for="descripcion">Introduce la descripcion del ejercicio</label>
-           <input type="text" name="descripcion"><br>
+            <div class="mb-3">
+              <input type="text" name="descripcion"><br>  
+            </div>
+           
         </div>
         <div class="mb-3 mt-3">
             <label for="entradaprueba">Introduce la entrada de prueba</label>
-           <input type="text" name="entradaprueba"><br>
+            <div class="mb-3">
+                <input type="text" name="entradaprueba"><br>
+            </div>
+           
         </div>
         <div class="mb-3 mt-3">
             <label for="salidaesperada">Introduce la salida esperada</label>
-           <input type="text" name="salidaesperada"><br>
+            <div class="mb-3">
+                <input type="text" name="salidaesperada"><br>
+            </div>
+           
         </div>
         <div class="mb-3 mt-3">
             <label for="scriptin">Carga el script de inicializacion</label><br>
-            <input type="file" name="scriptini"><br>
+            <div class="mb-3">
+               <input type="file" name="scriptini"><br> 
+            </div>
+            
         </div>
         <div class="mb-3 mt-3">
             <label for="sscriptcome">Carga el script de comprobacion de estado final</label><br>
-            <input type="file" name="scriptcomef"><br>
+            <div class="mb-3">
+              <input type="file" name="scriptcomef"><br>  
+            </div>
+            
         </div>
         <div class="mb-3 mt-3">
             <label for="sscriptcome">Carga el script de comprobacion de parametros</label><br>
-            <input type="file" name="scriptcomp"><br>
+            <div class="mb-3">
+                <input type="file" name="scriptcomp"><br>
+            </div>
+            
         </div>
          {% csrf_token %}
-         <input type="submit" value="Subir">
+        <input type="submit" value="Subir">
     </div>
 </form>
 {% endblock %}
