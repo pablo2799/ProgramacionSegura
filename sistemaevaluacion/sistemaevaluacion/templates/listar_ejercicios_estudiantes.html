@@ -17,7 +17,6 @@
       tr:nth-child(even){background-color: #f2f2f2}
     </style>
 {% endblock %}
-
 {% block encabezado %}Lista de ejercicios{% endblock %}
 {% block subtitulo%}
 <h5>Lista de ejercicios</h5>
@@ -35,19 +34,20 @@
         <td><a class="nav-link">{{ dato.titulo }}</a></td>
         <td>{{ dato.descripcion }}</td>
       </tr>
-      <form action="subir_ejercicio" method="GET">{% csrf_token %}
-        <label for="ejercicio"><h3>Selecciona un ejercicio:</h3>
-          <select name="ejercicio" required>
-            {% for ejercicio in ejercicios %}
-              <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <input type="submit" value="Ir al ejercicio"/>
-      </form>
+      
       {% endfor %}
     {% else %}
       <h2>Por el momento no hay ejercicios disponibles</h2>
     {%endif%}
-    </table>
+  </table>
+<form action="subir_ejercicio" method="GET">{% csrf_token %}
+  <label for="ejercicio"><h5>Selecciona un ejercicio:</h5>
+    <select name="ejercicio" required>
+      {% for ejercicio in ejercicios %}
+      <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
+      {% endfor %}
+    </select>
+  </label>
+    <input class="btn " style="background-color:#4a6ae3;" type="submit" value="Ir al ejercicio"/>
+</form>
 {% endblock %}

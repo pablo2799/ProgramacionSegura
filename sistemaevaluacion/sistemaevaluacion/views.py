@@ -2,7 +2,7 @@ from django.template import Template, Context
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from pymysql import NULL
-from requests_toolbelt import user_agent
+#from requests_toolbelt import user_agent
 from modelos import models
 import sistemaevaluacion.settings as conf
 import datetime
@@ -127,6 +127,7 @@ def login(request):
    if request.method == 'GET': 
       if request.session.get('logueado', False) == True:
          user = request.session['usuario']
+         print("**********usuario: ", user)  ################################
          if models.Alumnos.objects.filter(usuario__exact=user).count()>0:
             logging.info(f"El alumno {user} intentó entrar al login")
             return redirect('./inicio_alumnos')
@@ -239,6 +240,7 @@ def comprobar_token_alumno(request):
          errores = ['Tiempo de vida del token expirado']
          return render(request, t, {'errores': errores})
       request.session['logueado'] = True
+      request.session['tipouser'] = 'alumno' #########################
       logging.info(f"El usuario {username} inició sesión")
       return redirect('./inicio_alumnos')
 
@@ -273,6 +275,7 @@ def comprobar_token_maestro(request):
          errores = ['Tiempo de vida del token expirado']
          return render(request, t, {'errores': errores}) 
       request.session['logueado'] = True
+      request.session['tipouser'] = 'maestro' #########################
       logging.info(f"El usuario {username} inició sesión")
       return redirect('./inicio_maestros')
 
@@ -324,11 +327,18 @@ def registrar_maestros(request):
 def inicio_alumnos(request):
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
+      tipousuario = request.session['tipouser'] #####################
+      print('**********inicio_alumnos tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'maestro':  ##########################
+         print('**********************No ES ALUMNO, se redirreciono a inicio_maestros******************')
+         return redirect ('./inicio_maestros')  ######################
+      """
       try:
          alumno = models.Alumnos.objects.get(usuario=username)
       except ObjectDoesNotExist:
          logging.exception(f"El maestro {username} intentó entrar al inicio de alumnos")
          return redirect('./inicio_maestros')
+      """
       t = 'inicio_alumnos.html'
       if request.method == 'GET':
          return render(request,t,{'userlog':username})
@@ -339,11 +349,18 @@ def inicio_alumnos(request):
 def inicio_maestros(request):
    if request.session.get('logueado', False) == True:
       username = request.session['usuario']
+      tipousuario = request.session['tipouser'] #####################
+      print('**********inicio_alumnos tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'alumno':  ##########################
+         print('**********************NO ES MAESTRO, se redirreciono a inicio_alumnos******************')
+         return redirect ('./inicio_alumnos')  ######################
+         """
       try:
          maestro = models.Maestros.objects.get(usuario=username)
       except ObjectDoesNotExist:
          logging.exception(f"El alumno {username} intentó entrar al inicio de maestros")
          return redirect('./inicio_alumnos')
+         """
       t = 'inicio_maestros.html'
       if request.method == 'GET':
          return render(request,t,{'userlog':username})
@@ -502,15 +519,22 @@ def validar_datos_alumnos(usuario):
 def listar_ejercicios_maestros(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
+      tipousuario = request.session['tipouser'] #####################
+      print('**********listar_ejercicios_maestros | tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'alumno':  ##########################
+         print('**********************NO ES MAESTRO, se redirreciono a listar_ejercicios_estudiantes******************')
+         return redirect ('./listar_ejercicios_estudiantes')  ######################
+      """
       try:
          maestro = models.Maestros.objects.get(usuario=user)
       except ObjectDoesNotExist:
          logging.exception(f"El alumno {user} intentó entrar a listar ejercicios de maestros")
          return redirect('./inicio_alumnos')
+      """
       t = 'listar_ejercicios_maestros.html'
       if request.method == 'GET':
          listaEjercicios = models.Ejerciciosmaestros.objects.all()
-         return render(request,t, {'ejercicios':listaEjercicios})
+         return render(request,t, {'ejercicios':listaEjercicios, 'userlog':user})#################
    else:
       logging.info("Se intentó entrar a listar ejercicios de maestros sin estar logueado")
       return redirect('./login')
@@ -518,15 +542,22 @@ def listar_ejercicios_maestros(request):
 def listar_ejercicios_estudiantes(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
+      tipousuario = request.session['tipouser'] #####################
+      print('**********listar_ejercicios_estudiantes | tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'maestro':  ##########################
+         print('**********************NO ES ALUMNO, se redirreciono a listar_ejercicios_maestros******************')
+         return redirect ('/inicio_maestros')  ######################
+      """
       try:
          estudiante = models.Alumnos.objects.get(usuario=user)
       except ObjectDoesNotExist:
          logging.exception(f"El maestro {user} intentó entrar a listar ejercicios de estudiantes")
          return redirect('./inicio_maestros')
+      """
       t = 'listar_ejercicios_estudiantes.html'
       if request.method == 'GET':
          listaEjercicios = models.Ejerciciosmaestros.objects.all()
-         return render(request, t, {'ejercicios':listaEjercicios})
+         return render(request, t, {'ejercicios':listaEjercicios, 'userlog':user})#######################
    else:
       logging.info("Se intentó entrar a listar ejercicios de estudiantes sin estar logueado")
       return redirect('./login')
@@ -551,7 +582,7 @@ def subir_ejercicio(request):
             logging.info(f"El alumno {alumno.usuario} quizo volver a subir el ejercicio {ejercicio.titulo}")
             return redirect('./listar_ejercicios_estudiantes')
          else:
-            return render(request,t,{'ejercicio':ejercicio})
+            return render(request,t,{'ejercicio':ejercicio, 'userlog':user})  #######################3
       elif request.method == 'POST':
          try:
             script = request.FILES["scriptalumno"]
@@ -577,14 +608,22 @@ def subir_ejercicio(request):
 def crear_ejercicios(request):
    if request.session.get('logueado', False) == True:
       user = request.session['usuario']
+      tipousuario = request.session['tipouser'] #####################
+      print('**********crear_ejercicios | tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'alumno':  ##########################
+         print('**********************NO ES MAESTRO, se redirreciono a inicio_alumnos******************')
+         return redirect ('./inicio_alumnos')  ######################
+      """
       try:
          maestro = models.Maestros.objects.get(usuario=user)
       except ObjectDoesNotExist:
          logging.exception(f"El alumno {user} intentó entrar a crear ejercicios")
          return redirect('./inicio_alumnos')
+      """
       t = 'crear_ejercicios.html'
       if request.method == 'GET':
-         return render(request,t)
+         print('************esta en get******')
+         return render(request,t, {'userlog':user})###############################
       elif request.method == 'POST':
          titulo = request.POST["titulo"]
          desc = request.POST["descripcion"]
@@ -619,15 +658,22 @@ def crear_ejercicios(request):
 
 def revisar_ejercicio(request):
    if request.session.get('logueado', False) == True:
-      user = request.session['usuario']
+      user = request.session['usuario']  ##################
+      tipousuario = request.session['tipouser'] #####################
+      print('**********revisar_ejercicio | tipousuario: ', tipousuario)  ###################
+      if tipousuario == 'alumno':  ##########################
+         print('**********************NO ES MAESTRO, se redirreciono a inicio_alumnos******************')
+         return redirect ('./inicio_alumnos')  ######################
+      """
       try:
          maestro = models.Maestros.objects.get(usuario=user)
       except ObjectDoesNotExist:
          logging.exception(f"El alumno {user} intentó entrar a revisar ejercicio")
          return redirect('./inicio_alumnos')
+      """
       t = 'revisar_ejercicio.html'
       if request.method == 'GET':
-         return render(request,t)
+         return render(request,t, {'userlog':user})
    else:
       logging.info("Se intentó entrar a subir ejercicio sin estar logueado")
       return redirect('./login')

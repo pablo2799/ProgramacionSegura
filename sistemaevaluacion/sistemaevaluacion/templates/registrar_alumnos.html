@@ -1,23 +1,22 @@
-{% extends 'base_a.html' %}
+{% extends 'base_registros.html' %}
 {% block titulo %}Registro Alumnos{% endblock %}
-{% block encabezado %}Registrar Alumnos{% endblock %}
+{% block encabezado %}Registro Para Alumnos{% endblock %}
+{% block instruccion%}Ingresa los siguientes datos:{% endblock %}
 {% block contenido %}
-{%  if errores %}
-<div class="container" id="errores">
-    <div class="card bg-danger text-white">
-        Errores encontrados:
-    </div>
-    <div class="alert alert-danger">
-        <ol>
-            {% for error in errores %}
-            <li>
-                {{ error }}
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
+    <div class="container-fluid">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="logout">Iniciar Sesión</a>
             </li>
-            {% endfor %}
-        </ol>
+            <!--
+            <li class="nav-item">
+              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
+            </li>
+          -->
+        </ul>
     </div>
-</div>
-{%  endif %}
+</nav>
 <form method="POST">
     {% csrf_token %}
     <div class="contenedor">
@@ -70,7 +69,7 @@
             <input class="form-control" id="token" name="token" placeholder="Token de Telegram" type="password">
             </input>
         </div>
-        <button class="btn btn-primary" type="submit">
+        <button class="btn " style="background-color:SlateBlue;" type="submit">
             Registrar
         </button>
     </div>

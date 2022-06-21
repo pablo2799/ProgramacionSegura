@@ -21,7 +21,7 @@
     {% endblock %}
   </head>
   <body>
-    <header class="container-fluid text-center bg-primary pt-5 pb-3 text-white">
+    <header class="container-fluid text-center pt-5 pb-3 text-white" style="background-color:#24ad70;">
       <div class="p-3">
         <h1>Sistema de Evaluacion</h1>
         <p>Una herramienta de evaluación automática de ejercicios de programación shell scripting</p>
@@ -45,14 +45,19 @@
             <a class="nav-link" href="revisar_ejercicio">Revisar ejercicios</a>
           </li>
         </ul>
-        <a class="navbar-brand" href="logout">Cerrar Sesion</a>
+        <a class="nav-link" href="logout">Cerrar Sesion</a>
       </div>
     </nav>
     <section class="container">
       <div class="row">
         <div class="col-md-4">
-          <h1 class="">Acerca de:</h1>
+          <div>
+            <h2>Maestro: {{userlog}}</h2><!--MODIFICACION-->
+          </div>
+          <div>
+            <h1 class="">Acerca de:</h1>
             {% block subtitulo%}{% endblock %}
+          </div>
         </div>
         <div class="col-md-8">
           {% block contenido %}{% endblock %}
