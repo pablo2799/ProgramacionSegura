@@ -1,35 +1,40 @@
-{% extends 'base_registros.html' %}
-{% block titulo %}Verificacion maestro{% endblock %}
-{% block encabezado %}Comprobacion de Autenticacion de Usuario{% endblock %}
-{% block instruccion%}Ingresar el token de verificación{% endblock %}
-{% block contenido %}
-   <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
-      <div class="container-fluid">
-         <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="logout"></a>
-            </li>
-            <!--
-            <li class="nav-item">
-              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
-            </li>
-          -->
-         </ul>
+<!DOCTYPE html>
 
+<html lang="es-MX">
+ <head>
+    <title>Verificacion de inicio</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+   {% if errores %}
+      <div class="panel panel-danger" id="errores">
+         <div class="panel-heading">Falló el inicio de sesión</div>
+            <div class="panel-body">
+               <ul>
+                  {% for error in errores %}
+                     <li>{{ error }}</li>
+                        {% endfor %}
+               </ul>
+            </div>
       </div>
-   </nav>
+   {% endif %}   
 
    <div class="container">
       <div class="row text-center login-page">
+         <div class="col-md-12 login-form">
             <form  class="form-login" method="POST">
                {% csrf_token %}
-
+               <div class="row">
+                  <div class="col-md-12 login-form-header">
+                     <h5 class="login-form-font-header">Verificar Inicio de Sesión</h5>
+                  </div>
+               </div>
                <div class="row">
                   <div class="col-md-12 login-from-row">
                      <input class="controls" name="token" type="text" placeholder="Token de Telegram" required/>
                   </div>
                </div>
-               <br>
                <div class="row">
                   <div class="col-md-12 login-from-row">
                      <!--<button class="btn btn-info" type="submit">Entrar</button>-->
@@ -37,9 +42,10 @@
                   </div>
                </div>
                <div class="row">
-                  <a class=" text-black" href="logout">Intentar otra vez</a>
+                  <a class=" text-white" href="logout">Intentar otra vez</a>
                </div>
             </form>
+         </div>
       </div>
    </div>
-{% endblock %}
+</html>

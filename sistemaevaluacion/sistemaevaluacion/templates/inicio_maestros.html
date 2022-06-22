@@ -1,20 +1,21 @@
-{% extends 'base_m.html' %}
-{% block titulo %}Inicio maestros{% endblock %}
-{% block encabezado %}Inicio 
-<h2>Bienvenido {{userlog}}</h2>
-{% endblock %}
-{% block subtitulo%}
-<h5>Funcionamiento</h5>
-<p>Esta plataforma...</p>
-{% endblock %}
-{% block contenido %}
-   <div>
-      <h2>¿Qué quieres hacer?</h2>
+<!DOCTYPE html>
+
+<html lang="es-MX">
+   <head>
+      <title>Sistema de evaluacion</title>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+   </head>
+   <body>
+       <h1>Bienvenido {{userlog}}</h1>
+       <div>
+            <h2>¿Qué quieres hacer?</h2>
+            <a class=" text-white" href="crear_ejercicios">Crear ejercicio</a><br>
+            <a class=" text-white" href="revisar_ejercicio">Revisar ejercicios</a><br>
+            <a class=" text-white" href="listar_ejercicios_maestros">Listar ejercicios</a>
+        </div>
+   </body>
+   <div class="row">
+      <a class=" text-white" href="logout">Salir</a>
    </div>
-   <div>
-      <a class="nav-link" href="crear_ejercicios">Crear ejercicios</a>
-      <a class="nav-link" href="listar_ejercicios_maestros">Lista de ejercicios</a>
-      <a class="nav-link" href="revisar_ejercicio">Revisar ejercicios</a>
-      
-   </div>
-{% endblock %}
+</html>

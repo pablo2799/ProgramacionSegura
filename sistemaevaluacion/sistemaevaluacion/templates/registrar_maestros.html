@@ -1,31 +1,29 @@
-{% extends 'base_registros.html' %}
+{% extends 'base.html' %}
 {% block titulo %}Registro Maestros{% endblock %}
-{% block encabezado %}Registro Para Maestros{% endblock %}
-{% block instruccion%}Ingresa los siguientes datos:{% endblock %}
+{% block encabezado %}Registrar Maestros{% endblock %}
 {% block contenido %}
-
-    <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
-        <div class="container-fluid">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="logout">Iniciar Sesión</a>
+{%  if errores %}
+<div class="container" id="errores">
+    <div class="card bg-danger text-white">
+        Errores encontrados:
+    </div>
+    <div class="alert alert-danger">
+        <ol>
+            {% for error in errores %}
+            <li>
+                {{ error }}
             </li>
-            <!--
-            <li class="nav-item">
-              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
-            </li>
-          -->
-          </ul>
-
-        </div>
-      </nav>
-
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+{%  endif %}
 <form method="POST">
     {% csrf_token %}
     <div class="contenedor">
         <div class="mb-3 mt-3">
             <label class="form-label" for="nombre" style="color:#000000">
-                Nombre:
+               Nombre:
             </label>
             <input class="form-control" id="nombre" name="nombre" placeholder="Nombre del Maestro" type="text">
             </input>
@@ -65,7 +63,7 @@
             <input class="form-control" id="token" name="token" placeholder="Token de Telegram" type="password">
             </input>
         </div>
-        <button class="btn " style="background-color:SlateBlue;" type="submit">
+        <button class="btn btn-primary" type="submit">
             Registrar
         </button>
     </div>

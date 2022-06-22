@@ -16,7 +16,6 @@ import subprocess
 import socket
 import threading
 import os
-import random
 
 def get_client_ip(request):
    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -495,38 +494,112 @@ def evaluacion_script(ejercicio_en_proceso, ejercicioalumno):
    salida_esperada = ejercicioalumno.salidaEsperada
    titulo = ejercicioalumno.titulo
    descripcion = ejercicioalumno.descripcion
+   #------------------------------------------------------------------------------------------
 
-   cliente_socket = conectarse_a_servidor()
+   #------------------------------------------------------------------------------------------
+   if var_error_final == 0:
+      ejercicio_en_proceso.resultadoFinal="exito";
+   else:
+      ejercicio_en_proceso.resultadoFinal="fallo";
 
-   enviar_datos_al_socket(script_estudiante, script_inicializacion, script_comprobacion_parametros, script_estado_final, entrada_prueba, salida_esperada, cliente_socket)
-   var_error_parametros, var_error_final = recivir_variables_socket(cliente_socket)
-   
+   if var_error_parametros == 0:
+      ejercicio_en_proceso.resultadoParametros="exito";
+   else:
+      ejercicio_en_proceso.resultadoParametros="fallo";
 
-   ejercicio_en_proceso.resultadoFinal = var_error_final
-   ejercicio_en_proceso.resultadoParametros = var_error_parametros
    ejercicio_en_proceso.save()
 
-def conectarse_a_servidor():
-    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        cliente.connect(('127.0.0.1', int(1115)))
-        return cliente
-    except:
-        print('Puerto cerrado')
-        exit(1)
 
-def enviar_datos_al_socket(script_estudiante, script_inicializacion, script_comprobacion_parametros, script_estado_final, entrada_prueba, salida_esperada, cliente):
-   mensaje = script_estudiante+'%##%'+script_inicializacion+'%##%'+script_comprobacion_parametros+'%##%'+script_estado_final+'%##%'+entrada_prueba+'%##%'+salida_esperada
-   cliente.send(mensaje.encode('utf-8'))
-   print("entro al enviar views")
-   print(mensaje)
+def funcion_ejecutar_inicializacion(script_inicializacion):
+   chmod_inicializacion = ['chmod', '+x']
+   chmod_inicializacion.append(script_inicializacion)
+   chmod_inicializacion_salida = subprocess.Popen(chmod_inicializacion , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = chmod_inicializacion_salida.communicate()
+   ejecutar_inicializacion  = []
+   ejecutar_inicializacion.append(script_inicializacion)
+   ejecutar_inicializacion_salida = subprocess.Popen(ejecutar_inicializacion , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = ejecutar_inicializacion_salida.communicate()
 
-def recivir_variables_socket(cliente):
-   mensaje = cliente.recv(1024).decode('utf-8')
-   partes = mensaje.split('%##%')
-   var_error_parametros = partes[0]
-   var_error_final = partes[1]
-   return var_error_parametros, var_error_final
+def funcion_ejecutar_comprobacion_parametros(script_comprobacion_parametros, script_estudiante):
+   var_error_parametros=0
+   chmod_parametros  = ['chmod', '+x']
+   chmod_parametros.append(script_comprobacion_parametros)
+   chmod_parametros_salida = subprocess.Popen(chmod_parametros , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = chmod_parametros_salida.communicate()
+   #----------------------------------------------------------------------------------------------------------------------------------
+   ejecutar_validar_parametros  = []
+   ejecutar_validar_parametros.append(script_comprobacion_parametros)
+   ejecutar_validar_parametros.append(script_estudiante)
+   ejecutar_validar_parametros_salida = subprocess.Popen(ejecutar_validar_parametros , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = ejecutar_validar_parametros_salida.communicate()
+   var_error_parametros = ejecutar_validar_parametros_salida.returncode
+   return var_error_parametros
+
+def funcion_ejecutar_script_alumno(script_estudiante, entradas_prueba):
+   cont=0
+   cont_var_while=0
+   resultado=""
+   num_variables=1
+   variable_prueba=entradas_prueba
+   var_una_entrada=0
+   #----------------------------------------------------------------------------------------------------------------------------------
+   chmod_estudiante  = ['chmod', '+x']
+   chmod_estudiante.append(script_estudiante)
+   chmod_estudiante_salida = subprocess.Popen(chmod_estudiante , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = chmod_estudiante_salida.communicate()
+   #----------------------------------------------------------------------------------------------------------------------------------
+   ejecutar_script_estudiante  = []
+   ejecutar_script_estudiante.append(script_estudiante)
+   for i in entradas_prueba:
+      if i == ',':
+         cont += 1
+
+   if cont >= 1:
+      var_una_entrada=1
+      variables=entradas_prueba.split(',')
+      num_variables=len(variables)
+
+   if var_una_entrada == 0:
+      ejecutar_script_estudiante.append(variable_prueba)
+   else:
+      while num_variables >= 1:
+         ejecutar_script_estudiante.append(variables[cont_var_while])
+         cont_var_while=cont_var_while+1
+         num_variables=num_variables-1
+
+   ejecutar_script_estudiante_salida = subprocess.Popen(ejecutar_script_estudiante , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = ejecutar_script_estudiante_salida.communicate()
+   error = stderr.decode('utf-8')
+   stdout = stdout.decode('utf-8')
+   #----------------------------------------------------------------------------------------------------------------------------------
+   if len(stdout) != 0:
+      partes = stdout.split('\n')
+      resultado_lista = partes[:-1]
+      resultado = str(",".join(partes[:-1]))
+
+   return resultado
+
+def funcion_ejecutar_estado_final(script_estado_final, salida_esperada, resultado):
+   chmod_estadoFinal  = ['chmod', '+x']
+   chmod_estadoFinal.append(script_estado_final)
+   chmod_estadoFinal_salida = subprocess.Popen(chmod_estadoFinal , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+   stdout, stderr = chmod_estadoFinal_salida.communicate()
+   if len(salida_esperada) == 0: 
+      ejecutar_estadoFinal  = []
+      ejecutar_estadoFinal.append(script_estado_final)
+      ejecutar_estadoFinal_salida = subprocess.Popen(ejecutar_estadoFinal , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      stdout, stderr = ejecutar_estadoFinal_salida.communicate()
+      var_error_final = ejecutar_estadoFinal_salida.returncode
+      print(var_error_final)
+   else:
+      ejecutar_estadoFinal  = []
+      ejecutar_estadoFinal.append(script_estado_final)
+      ejecutar_estadoFinal.append(salida_esperada)
+      ejecutar_estadoFinal.append(resultado)
+      ejecutar_estadoFinal_salida = subprocess.Popen(ejecutar_estadoFinal , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      stdout, stderr = ejecutar_estadoFinal_salida.communicate()
+      var_error_final = ejecutar_estadoFinal_salida.returncode
+   return var_error_final
 
 def crear_ejercicios(request):
    if request.session.get('logueado', False) == True:
