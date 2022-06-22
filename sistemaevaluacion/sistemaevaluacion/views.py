@@ -13,6 +13,7 @@ import logging
 import socket
 import os
 import subprocess
+import re
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
                      datefmt='%d-%b-%y %H:%M:%S',
                      level=logging.INFO,
@@ -465,6 +466,8 @@ def validar_datos_maestros(usuario:object):
    -Función para validar los campos introducidos por un usuario al intentar registrarse como maestro
       -Se validan: nombre, contraseña, número de personal, correo, chat ID de telegram, token de telegram
       -Ningún campo puede quedar vacío
+      -Llama a la función 'validar_nopersonal' para comprobar el formato del número de personal
+      -Llama a la función 'validar_correo_maestros' para comprobar el formato del correo del maestro
    -Argumento: Una instancia de la clase 'Maestros'
    -Return: Una lista, ya sea vacía o no dependiendo si hubo errores
    """
@@ -506,17 +509,41 @@ def validar_datos_maestros(usuario:object):
       errores.append('La contraseña no tiene ningún dígito')
    if len(usuario.nopersonal) != 5:
       errores.append('El número de personal debe tener 5 caracteres')
-   if len(usuario.correo) < 8:
+   elif validar_nopersonal(usuario.nopersonal) == None:
+      errores.append('El número de personal es incorrecto')
+   if len(usuario.correo) < 10:
       errores.append('El correo no puede ser menor a 8 caracteres')
    elif len(usuario.correo) > 30:
       errores.append('El correo no puede ser mayor a 30 caracteres')
+   elif validar_correo_maestros(usuario.correo) == None:
+      errores.append('Formato de correo incorrecto')
    return errores
+
+def validar_nopersonal(nopersonal:str):
+   """
+   -Función que valida si un número de personal tiene el formato correcto utilizando una expresión regular
+   -Argumento: El número de personal que ingresa el maestro en el formulario de registro
+   -Return: Si hubo o no coincidencia
+   """
+   regex = re.compile('^[0-9]{5}$')
+   return (regex.match(nopersonal))
+
+def validar_correo_maestros(correo:str):
+   """
+   -Función que valida si un correo de maestro tiene el formato correcto utilizando una expresión regular
+   -Argumento: El correo que ingresa el maestro en el formulario de registro
+   -Return: Si hubo o no coincidencia
+   """
+   regex = re.compile('^[a-z]{4,24}@uv.mx$')
+   return (regex.match(correo))
 
 def validar_datos_alumnos(usuario:object):
    """
    -Función para validar los campos introducidos por un usuario al intentar registrarse como alumno
       -Se validan: nombre, contraseña, matrícula, carrera, correo, chat ID de telegram, token de telegram
       -Ningún campo puede quedar vacío
+      -Llama a la función 'validar_matricula' para comprobar el formato de la matrícula
+      -Llama a la función 'validar_correo_alumnos' para comprobar el formato del correo del alumno
    -Argumento: Una instancia de la clase 'Alumnos'
    -Return: Una lista, ya sea vacía o no dependiendo si hubo errores
    """
@@ -558,13 +585,35 @@ def validar_datos_alumnos(usuario:object):
       errores.append('La contraseña no tiene ningún dígito')
    if len(usuario.matricula) != 9:
       errores.append('La matrícula debe tener 9 caracteres')
+   elif validar_matricula(usuario.matricula) == None:
+      errores.append('Matricula incorrecta')
    if len(usuario.carrera) < 5:
       errores.append('La carrera es muy corta')
    elif len(usuario.carrera) > 40:
       errores.append('La carrera es muy larga')
    if len(usuario.correo) != 28:
       errores.append('El correo debe tener 28 caracteres')
+   elif validar_correo_alumnos(usuario.correo) == None:
+      errores.append('Formato de correo incorrecto')
    return errores
+
+def validar_matricula(matricula:str):
+   """
+   -Función que valida si una matrícula tiene el formato correcto utilizando una expresión regular
+   -Argumento: La matrícula que ingresa el alumno en el formulario de registro
+   -Return: Si hubo o no coincidencia
+   """
+   regex = re.compile('^S[0-9]{8}$')
+   return (regex.match(matricula))
+
+def validar_correo_alumnos(correo:str):
+   """
+   -Función que valida si un correo de alumno tiene el formato correcto utilizando una expresión regular
+   -Argumento: El correo que ingresa el alumno en el formulario de registro
+   -Return: Si hubo o no coincidencia
+   """
+   regex = re.compile('^zS[0-9]{8}@estudiantes.uv.mx$')
+   return (regex.match(correo))
 
 def listar_ejercicios_maestros(request:object):
    """
@@ -662,18 +711,15 @@ def subir_ejercicio(request:object):
          except MultiValueDictKeyError:
             logging.exception(f"Error al subir el archivo de un ejercicio del alumno {user}")
             return redirect('./listar_ejercicios_estudiantes')
-         #if models.Ejerciciosalumnos.objects.filter(ejercicio=ejercicio,alumno=alumno).count()>0:
-         #   ejercicioalumno_repetido = models.Ejerciciosalumnos.objects.filter(alumno=alumno, ejecicio=ejercicio)
-         #   ejercicioalumno_repetido.delete()
          ejercicioalumno = models.Ejerciciosalumnos(alumno=alumno,ejercicio=ejercicio, scriptEstudiante=script)
          ejercicioalumno.save()
          logging.info(f"El alumno {user} subió el ejercicio {ejercicio.titulo}")
-         #try:
-         evaluacion_script(ejercicioalumno)
-         #except:
-         #   logging.exception("Ocurrió un error al evaluar el script")
-         #   ejercicioalumno.delete()
-         #   return redirect('./listar_ejercicios_estudiantes')
+         try:
+            evaluacion_script(ejercicioalumno)
+         except:
+            logging.exception("Ocurrió un error al evaluar el script")
+            ejercicioalumno.delete()
+            return redirect('./listar_ejercicios_estudiantes')
          return redirect('./listar_ejercicios_estudiantes')
    else:
       logging.info("Se intentó entrar a subir ejercicio sin estar logueado")
@@ -800,7 +846,16 @@ def existe_usuario(usuario:str,tipousuario:str):
          errores.append('Un alumno con ese nombre ya existe')
          return errores
 
-def evaluacion_script(ejercicio_alumno):
+def evaluacion_script(ejercicio_alumno:object):
+   """
+   -Función que empieza la evaluación del script que sube el alumno
+      -Crea variables que guardan la ruta de los scripts que suben el maestro y el alumno, así como los campos de texto
+      -Llama a la función 'creación_entorno_aislado' para que regrese las rutas donde se ejecutarán los scripts
+      -Llama a la función 'conectarse_a_servidor' para que regrese el socket cliente con el que se conectará al servidor
+      -Llama a la función 'enviar_datos_al_socket' para que el servidor reciba la ruta de los scripts de ejecución
+      -Llama a la función 'recibir_variables_socket' para recibir el resultado de la evaluación de parámetros y comprobación de estado final
+   -Argumento: Una instancia de 'Ejercicioalumno'
+   """
    logging.info(f"Se está evaluando el ejercicio {ejercicio_alumno.ejercicio.titulo} del alumno {ejercicio_alumno.alumno.usuario}...")
    script_inicializacion = ('media/'+str(ejercicio_alumno.ejercicio.scriptInicial))
    script_comprobacion_parametros = ('media/'+str(ejercicio_alumno.ejercicio.scriptComprobacionP))
@@ -809,56 +864,90 @@ def evaluacion_script(ejercicio_alumno):
    entrada_prueba = ejercicio_alumno.ejercicio.entradaPrueba
    salida_esperada = ejercicio_alumno.ejercicio.salidaEsperada
    script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro = creacion_entorno_aislado(script_inicializacion, script_comprobacion_parametros, script_estado_final, script_estudiante)
-   print (script_ini_seguro)
-   print (script_com_param_seguro)
-   print (script_est_final_seguro)
-   print (script_estudiante_seguro)
-   os.system(f'chmod +x {script_ini_seguro}')
-   os.system(f'chmod +x {script_com_param_seguro}')
-   os.system(f'chmod +x {script_est_final_seguro}')
-   os.system(f'chmod +x {script_estudiante_seguro}')
    cliente_socket = conectarse_a_servidor()
-
    enviar_datos_al_socket(script_estudiante_seguro, script_ini_seguro, script_com_param_seguro, script_est_final_seguro, entrada_prueba, salida_esperada, cliente_socket)
    var_error_parametros, var_error_final = recibir_variables_socket(cliente_socket)
-   
-
    ejercicio_alumno.resultadoFinal = var_error_final
    ejercicio_alumno.resultadoParametros = var_error_parametros
    ejercicio_alumno.save()
 
 def conectarse_a_servidor():
+   """
+   -Función que crea un socket cliente y se conecta con el socket servidor
+      -Si no se pudo crear la conexión termina el proceso
+   -Return: Socket cliente
+   """
    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
    try:
       cliente.connect(('127.0.0.1', int(1117)))
+      logging.info("Conexión con el servidor del socket hecha")
       return cliente
-   except:
-      print('Puerto cerrado')
+   except ConnectionRefusedError:
+      logging.exception("No se pudo realizar la conexión con el servidor del socket")
       exit(1)
 
-def enviar_datos_al_socket(script_estudiante, script_inicializacion, script_comprobacion_parametros, script_estado_final, entrada_prueba, salida_esperada, cliente):
+def enviar_datos_al_socket(script_estudiante:str, script_inicializacion:str, script_comprobacion_parametros:str, script_estado_final:str, entrada_prueba:str, salida_esperada:str, cliente:socket):
+   """
+   -Función que envía la ruta de los script de alumno y maestro, y la entrada de prueba y salida esperada al socket servidor
+      -Estas rutas están en un entorno limitado
+      -Codifica el mensaje antes de enviarlo
+   -Argumentos
+      -Script del estudiante
+      -Script de inicialización
+      -Script de comprobación de estado final
+      -Script de evaluación de parámetros
+      -Entrada de prueba
+      -Salida esperada
+      -Socket cliente
+   """
    mensaje = script_estudiante+'%##%'+script_inicializacion+'%##%'+script_comprobacion_parametros+'%##%'+script_estado_final+'%##%'+entrada_prueba+'%##%'+salida_esperada
    cliente.send(mensaje.encode('utf-8'))
-   print("entro al enviar views")
-   print(mensaje)
+   logging.info("Se enviaron los mensajes al servidor del socket")
 
-def recibir_variables_socket(cliente):
+def recibir_variables_socket(cliente:socket):
+   """
+   -Función que recibe los resultados de la evaluación del ejercicio ejecutado por el socket servidor
+      -Decodifica el mensaje después de recibirlo
+   -Argumento: Socket cliente
+   -Returns:
+      -Resultado de la evaluación de parámetros
+      -Resultado de la comprobación de estado final
+   """
    mensaje = cliente.recv(1024).decode('utf-8')
    partes = mensaje.split('%##%')
    var_error_parametros = partes[0]
    var_error_final = partes[1]
+   logging.info("Se recibieron los mensajes del servidor del socket")
    return var_error_parametros, var_error_final
 
-def creacion_entorno_aislado(script_inicializacion, script_comprobacion_parametros, script_estado_final, script_estudiante):
-   os.system(f'cp {script_inicializacion} /home/limitado/; cp {script_comprobacion_parametros} /home/limitado/; cp {script_estado_final} /home/limitado/; cp {script_estudiante} /home/limitado/')
+def creacion_entorno_aislado(script_inicializacion:str, script_comprobacion_parametros:str, script_estado_final:str, script_estudiante:str):
+   """
+   -Función que copia los archivos donde se guardaron inicialmente hacia un directorio que se ejecutará por un usuario limitado
+      -Crea variables con las nuevas rutas en el entorno de ejecución
+      -Les da permisos de ejecución a todos los archivos
+   -Argumentos:
+      -Script de inicialización
+      -Script de evaluación de parámetros
+      -Script de comprobación de estado final
+      -Script del alumno
+   -Return: Las variables con las nuevas rutas donde se ejecutarán los scripts
+   """
+   directorio_ejecucion = '/tmp/pruebas/'
+   os.system(f'mkdir {directorio_ejecucion}')
+   os.system(f'chown limitado {directorio_ejecucion}')
+   os.system(f'cp {script_inicializacion} {directorio_ejecucion}; cp {script_comprobacion_parametros} {directorio_ejecucion}; cp {script_estado_final} {directorio_ejecucion}; cp {script_estudiante} {directorio_ejecucion}')
    archivo_script_ini = script_inicializacion.split('/')
    arcivo_script_param = script_comprobacion_parametros.split('/')
    archivo_script_estado = script_estado_final.split('/')
    archivo_script_alumno = script_estudiante.split('/')
-   
-   script_ini_seguro = ('/home/limitado/'+archivo_script_ini[2])
-   script_com_param_seguro = ('/home/limitado/'+arcivo_script_param[2])
-   script_est_final_seguro = ('/home/limitado/'+archivo_script_estado[2])
-   script_estudiante_seguro = ('/home/limitado/'+archivo_script_alumno[2])
-
+   script_ini_seguro = (directorio_ejecucion+archivo_script_ini[2])
+   script_com_param_seguro = (directorio_ejecucion+arcivo_script_param[2])
+   script_est_final_seguro = (directorio_ejecucion+archivo_script_estado[2])
+   script_estudiante_seguro = (directorio_ejecucion+archivo_script_alumno[2])
+   print (script_ini_seguro)
+   os.system(f'chmod +x {script_ini_seguro}')
+   os.system(f'chmod +x {script_com_param_seguro}')
+   os.system(f'chmod +x {script_est_final_seguro}')
+   os.system(f'chmod +x {script_estudiante_seguro}')
+   logging.info("Se copiaron los archivos a otro entorno para su ejecución")
    return script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro

@@ -2,6 +2,14 @@ import socket
 import sys
 import threading
 import subprocess
+import logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                     datefmt='%d-%b-%y %H:%M:%S',
+                     level=logging.INFO,
+                     filename='logs/registro-eventos.log',
+                     filemode='a'
+
+)
 
 def funcion_ejecutar_inicializacion(script_inicializacion):
    chmod_inicializacion = ['chmod', '+x']
@@ -98,7 +106,8 @@ def funcion_ejecutar_estado_final(script_estado_final, salida_esperada, resultad
 
 def crear_socket_servidor():
     mi_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    mi_socket.bind(('', int(1117)))  # hace el bind en cualquier interfaz disponible
+    mi_socket.bind(('', int(1117)))
+    logging.info("Socket de servidor creado")
     return mi_socket
     
 def ejecutar_scripts(cliente, mutex):
@@ -134,10 +143,11 @@ def ejecutar_scripts(cliente, mutex):
 
 def escuchar(servidor, mutex):
    print("entro al escuchar")
-   servidor.listen(2) # peticiones de conexion simultaneas
+   servidor.listen(2)
    while True:
-      conn, addr = servidor.accept() # bloqueante, hasta que llegue una peticion
-      hiloAtencion = threading.Thread(target=ejecutar_scripts, args=(conn, mutex)) # se crea un hilo de atención por cliente
+      conn, addr = servidor.accept() 
+      hiloAtencion = threading.Thread(target=ejecutar_scripts, args=(conn, mutex))
+      logging.info("Hilo de atención creado")
       hiloAtencion.start()
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ class Alumnos(models.Model): #Clase para alumnos que se pueden loguear en el sis
     password = models.CharField(max_length=255)
     matricula = models.CharField(max_length=9) 
     carrera = models.CharField(max_length=40)
-    correo = models.CharField(max_length=30)
+    correo = models.CharField(max_length=28)
     chatId = models.CharField(max_length=9)
     tokenId = models.CharField(max_length=46)
     token = models.CharField(max_length=6)
