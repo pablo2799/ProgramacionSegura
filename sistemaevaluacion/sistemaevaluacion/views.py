@@ -12,7 +12,6 @@ from django.utils.datastructures import MultiValueDictKeyError
 import logging
 import socket
 import os
-import subprocess
 import re
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
                      datefmt='%d-%b-%y %H:%M:%S',
@@ -863,13 +862,14 @@ def evaluacion_script(ejercicio_alumno:object):
    script_estudiante = ('media/'+str(ejercicio_alumno.scriptEstudiante))
    entrada_prueba = ejercicio_alumno.ejercicio.entradaPrueba
    salida_esperada = ejercicio_alumno.ejercicio.salidaEsperada
-   script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro = creacion_entorno_aislado(script_inicializacion, script_comprobacion_parametros, script_estado_final, script_estudiante)
+   script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro, directorio_borrar = creacion_entorno_aislado(script_inicializacion, script_comprobacion_parametros, script_estado_final, script_estudiante)
    cliente_socket = conectarse_a_servidor()
    enviar_datos_al_socket(script_estudiante_seguro, script_ini_seguro, script_com_param_seguro, script_est_final_seguro, entrada_prueba, salida_esperada, cliente_socket)
    var_error_parametros, var_error_final = recibir_variables_socket(cliente_socket)
    ejercicio_alumno.resultadoFinal = var_error_final
    ejercicio_alumno.resultadoParametros = var_error_parametros
    ejercicio_alumno.save()
+   os.system(f'rm -r {directorio_borrar}')
 
 def conectarse_a_servidor():
    """
@@ -950,4 +950,4 @@ def creacion_entorno_aislado(script_inicializacion:str, script_comprobacion_para
    os.system(f'chmod +x {script_est_final_seguro}')
    os.system(f'chmod +x {script_estudiante_seguro}')
    logging.info("Se copiaron los archivos a otro entorno para su ejecución")
-   return script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro
+   return script_ini_seguro, script_com_param_seguro, script_est_final_seguro, script_estudiante_seguro, directorio_ejecucion
