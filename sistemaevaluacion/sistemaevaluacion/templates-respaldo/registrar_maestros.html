@@ -1,22 +1,23 @@
-{% extends 'base_registros.html' %}
-{% block titulo %}Registro Alumnos{% endblock %}
-{% block encabezado %}Registro Para Alumnos{% endblock %}
-{% block instruccion%}Ingresa los siguientes datos:{% endblock %}
+{% extends 'base_m.html' %}
+{% block titulo %}Registro Maestros{% endblock %}
+{% block encabezado %}Registrar Maestros{% endblock %}
 {% block contenido %}
-<nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
-    <div class="container-fluid">
-        <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="logout">Iniciar Sesión</a>
-            </li>
-            <!--
-            <li class="nav-item">
-              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
-            </li>
-          -->
-        </ul>
+{%  if errores %}
+<div class="container" id="errores">
+    <div class="card bg-danger text-white">
+        Errores encontrados:
     </div>
-</nav>
+    <div class="alert alert-danger">
+        <ol>
+            {% for error in errores %}
+            <li>
+                {{ error }}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+{%  endif %}
 <form method="POST">
     {% csrf_token %}
     <div class="contenedor">
@@ -24,7 +25,7 @@
             <label class="form-label" for="nombre" style="color:#000000">
                 Nombre:
             </label>
-            <input class="form-control" id="nombre" name="nombre" placeholder="Nombre del Alumno" type="text">
+            <input class="form-control" id="nombre" name="nombre" placeholder="Nombre del Maestro" type="text">
             </input>
         </div>
         <div class="mb-3 mt-3">
@@ -35,22 +36,15 @@
             </input>
         </div>
         <div class="mb-3 mt-3">
-            <label class="form-label" for="matricula" style="color:#000000">
-                Matricula:
+            <label class="form-label" for="nopersonal" style="color:#000000">
+               Numero de personal:
             </label>
-            <input class="form-control" id="matricula" name="matricula" placeholder="Matricula" type="text">
-            </input>
-        </div>
-        <div class="mb-3 mt-3">
-            <label class="form-label" for="carrera" style="color:#000000">
-                Carrera:
-            </label>
-            <input class="form-control" id="carrera" name="carrera" placeholder="Carrera" type="text">
+            <input class="form-control" id="nopersonal" name="nopersonal" placeholder="Numero de personal" type="text">
             </input>
         </div>
         <div class="mb-3 mt-3">
             <label class="form-label" for="correo" style="color:#000000">
-                Correo:
+               Correo:
             </label>
             <input class="form-control" id="correo" name="correo" placeholder="Correo" type="text">
             </input>
@@ -69,7 +63,7 @@
             <input class="form-control" id="token" name="token" placeholder="Token de Telegram" type="password">
             </input>
         </div>
-        <button class="btn " style="background-color:SlateBlue;" type="submit">
+        <button class="btn btn-primary" type="submit">
             Registrar
         </button>
     </div>

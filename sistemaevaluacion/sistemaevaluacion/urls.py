@@ -32,7 +32,8 @@ urlpatterns = [
     path('crear_ejercicios',crear_ejercicios),
     path('revisar_ejercicio',revisar_ejercicio),
     path('logout',logout),
-    path('verificacion',comprobar_token),
+    path('comprobar_token_alumno',comprobar_token_alumno),
+    path('comprobar_token_maestro',comprobar_token_maestro),
     path('inicio_alumnos',inicio_alumnos),
     path('inicio_maestros',inicio_maestros),
 ]

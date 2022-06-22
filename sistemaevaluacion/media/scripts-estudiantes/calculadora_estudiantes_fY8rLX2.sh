@@ -14,7 +14,7 @@ num1=$1
 num2=$2
 
 resuldato_suma=$(($num1 + $num2))
-resuldato_resta=$(($num1 - $num2))
+resuldato_resta=$(($num1 + $num2))
 resuldato_multiplicacion=$(($num1 * $num2))
 resuldato_division=$(($num1 / $num2))
 

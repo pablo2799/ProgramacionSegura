@@ -1,38 +1,23 @@
-{% extends 'base.html' %}
-{% block titulo %}Subir ejercicio{% endblock %}
-{% block encabezado %}Subir ejercicio{% endblock %}
+{% extends 'base_a.html' %}
+{% block titulo %}Subir script{% endblock %}
+{% block encabezado %}Subir script{% endblock %}
+{% block subtitulo%}
+<h5>Como subir el script</h5>
+<p>Este apartado es...</p>
+{% endblock %}
 {% block contenido %}
-{%  if prueba %}
-<div class="container" id="prueba">
-    <div class="card bg-info text-white">
-        Info Prueba:
+    <h1>Ejercicio: {{ejercicio.titulo}}</h1>
+    <div>
+        <p><strong>Descripcion: </strong>{{ejercicio.descripcion}} </p>
     </div>
-    <div class="alert alert-info">
-        <ol>
-            {% for error in prueba %}
-            <li>
-                {{ error }}
-            </li>
-            {% endfor %}
-        </ol>
-    </div>
-</div>
-{%  endif %}
-<h2>Ejercicio: {{ejercicio.titulo}}</h2>
-<h4> Descripcion: {{ejercicio.descripcion}}</h4>
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="contenedor">
-    <div class="mb-3 mt-3">
-            <label class="form-label" for="scriptalumno" style="color:#000000">
-                Carga el script del ejercicio:
-            </label>
-            <input class="form-control" id="scriptalumno" name="scriptalumno" type="file">
-            </input>
-        </div>
-        <button class="btn btn-primary" type="submit">
-            Subir
-        </button>
-    </div>
-</form>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <label for="scriptalumno">Carga el script del ejercicio</label>
+        <div class="mb-3">
+            <input type="file" name="scriptalumno"><br>
+        </div> 
+        {% csrf_token %}
+        <input class="btn " style="background-color:#4a6ae3;" type="submit" value="Subir">
+    </form>
+    
 {% endblock %}

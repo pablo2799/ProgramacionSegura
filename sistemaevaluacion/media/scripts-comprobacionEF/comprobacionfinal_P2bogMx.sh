@@ -1,7 +1,7 @@
 #!/bin/bash
 let archivostxt=0
 let archivospy=0
-directorio="/tmp/prueba_texto/"
+directorio="prueba/"
 cd $directorio
 
 for archivo in $(ls *txt); do

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir /tmp/prueba_texto/
-cd /tmp/prueba_texto/
+mkdir prueba/
+cd prueba/
 for i in {0..9}
 do
     touch "archivo$i.txt"
