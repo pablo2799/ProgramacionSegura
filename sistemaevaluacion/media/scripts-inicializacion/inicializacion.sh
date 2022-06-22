@@ -1,12 +1,15 @@
 #!/bin/bash
 
-mkdir /home/pablo/tmp
-cd /home/pablo/tmp
+mkdir tmp
 for i in {0..9}
 do
-    touch "archivo$i.txt"
+    touch tmp/"archivo$i.txt"
 done
 for i in {0..4}
 do
-    touch "archivo$i.py"
+    touch tmp/"archivo$i.py"
+done
+for i in {0..2}
+do
+    touch tmp/"archivo$i.sh"
 done
