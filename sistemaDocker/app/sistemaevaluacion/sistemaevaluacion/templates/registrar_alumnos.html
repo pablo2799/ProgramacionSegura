@@ -1,0 +1,77 @@
+{% extends 'base_registros.html' %}
+{% block titulo %}Registro Alumnos{% endblock %}
+{% block encabezado %}Registro Para Alumnos{% endblock %}
+{% block instruccion%}Ingresa los siguientes datos:{% endblock %}
+{% block contenido %}
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
+    <div class="container-fluid">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="logout">Iniciar Sesión</a>
+            </li>
+            <!--
+            <li class="nav-item">
+              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
+            </li>
+          -->
+        </ul>
+    </div>
+</nav>
+<form method="POST">
+    {% csrf_token %}
+    <div class="contenedor">
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="nombre" style="color:#000000">
+                Nombre:
+            </label>
+            <input class="form-control" id="nombre" name="nombre" placeholder="Nombre del Alumno" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="password" style="color:#000000">
+                Contraseña:
+            </label>
+            <input class="form-control" id="password" name="password" placeholder="Contraseña" type="password">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="matricula" style="color:#000000">
+                Matricula:
+            </label>
+            <input class="form-control" id="matricula" name="matricula" placeholder="Matricula" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="carrera" style="color:#000000">
+                Carrera:
+            </label>
+            <input class="form-control" id="carrera" name="carrera" placeholder="Carrera" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="correo" style="color:#000000">
+                Correo:
+            </label>
+            <input class="form-control" id="correo" name="correo" placeholder="Correo" type="text">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="chatId" style="color:#000000">
+                ChatId:
+            </label>
+            <input class="form-control" id="chatId" name="chatId" placeholder="Chat Id Telegram" type="password">
+            </input>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label" for="token" style="color:#000000">
+                Token:
+            </label>
+            <input class="form-control" id="token" name="token" placeholder="Token de Telegram" type="password">
+            </input>
+        </div>
+        <button class="btn " style="background-color:SlateBlue;" type="submit">
+            Registrar
+        </button>
+    </div>
+</form>
+{% endblock %}

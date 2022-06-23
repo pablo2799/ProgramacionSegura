@@ -1,0 +1,45 @@
+{% extends 'base_registros.html' %}
+{% block titulo %}Verificacion maestro{% endblock %}
+{% block encabezado %}Comprobacion de Autenticacion de Usuario{% endblock %}
+{% block instruccion%}Ingresar el token de verificación{% endblock %}
+{% block contenido %}
+   <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
+      <div class="container-fluid">
+         <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="logout"></a>
+            </li>
+            <!--
+            <li class="nav-item">
+              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
+            </li>
+          -->
+         </ul>
+
+      </div>
+   </nav>
+
+   <div class="container">
+      <div class="row text-center login-page">
+            <form  class="form-login" method="POST">
+               {% csrf_token %}
+
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <input class="controls" name="token" type="text" placeholder="Token de Telegram" required/>
+                  </div>
+               </div>
+               <br>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <!--<button class="btn btn-info" type="submit">Entrar</button>-->
+                     <input id="boton" title="Pulsa para iniciar sesion" type="submit" value="Verificar"/>
+                  </div>
+               </div>
+               <div class="row">
+                  <a class=" text-black" href="logout">Intentar otra vez</a>
+               </div>
+            </form>
+      </div>
+   </div>
+{% endblock %}

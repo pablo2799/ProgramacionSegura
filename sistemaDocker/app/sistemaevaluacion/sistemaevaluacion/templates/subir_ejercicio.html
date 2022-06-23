@@ -1,0 +1,23 @@
+{% extends 'base_a.html' %}
+{% block titulo %}Subir script{% endblock %}
+{% block encabezado %}Subir script{% endblock %}
+{% block subtitulo%}
+<h5>Como subir el script</h5>
+<p>Este apartado es...</p>
+{% endblock %}
+{% block contenido %}
+    <h1>Ejercicio: {{ejercicio.titulo}}</h1>
+    <div>
+        <p><strong>Descripcion: </strong>{{ejercicio.descripcion}} </p>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <label for="scriptalumno">Carga el script del ejercicio</label>
+        <div class="mb-3">
+            <input type="file" name="scriptalumno"><br>
+        </div> 
+        {% csrf_token %}
+        <input class="btn " style="background-color:#4a6ae3;" type="submit" value="Subir">
+    </form>
+    
+{% endblock %}

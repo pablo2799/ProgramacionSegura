@@ -1,0 +1,53 @@
+{% extends 'base_a.html' %}
+{% block titulo %}Listar ejercicios{% endblock %}
+{% block estilo_interno%}
+    <style>
+      table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+      border: 1px solid #ddd;
+      }
+
+      th, td {
+      text-align: left;
+      padding: 8px;
+      }
+
+      tr:nth-child(even){background-color: #f2f2f2}
+    </style>
+{% endblock %}
+{% block encabezado %}Lista de ejercicios{% endblock %}
+{% block subtitulo%}
+<h5>Lista de ejercicios</h5>
+<p>Este apartado muestra...</p>
+{% endblock %}
+{% block contenido%}
+  <table>
+    <tr>
+      <th>Titulo</th>
+      <th>Descripcion</th>
+    </tr>
+    {% if ejercicios %}
+      {% for dato in ejercicios %}
+      <tr>
+        <td><a class="nav-link">{{ dato.titulo }}</a></td>
+        <td>{{ dato.descripcion }}</td>
+      </tr>
+      
+      {% endfor %}
+    {% else %}
+      <h2>Por el momento no hay ejercicios disponibles</h2>
+    {%endif%}
+  </table>
+<form action="subir_ejercicio" method="GET">{% csrf_token %}
+  <label for="ejercicio"><h5>Selecciona un ejercicio:</h5>
+    <select name="ejercicio" required>
+      {% for ejercicio in ejercicios %}
+      <option value="{{ejercicio.id}}">{{ejercicio.titulo}}</option>
+      {% endfor %}
+    </select>
+  </label>
+    <input class="btn " style="background-color:#4a6ae3;" type="submit" value="Ir al ejercicio"/>
+</form>
+{% endblock %}

@@ -879,7 +879,7 @@ def conectarse_a_servidor():
    """
    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
    try:
-      cliente.connect(('127.0.0.1', int(1117)))
+      cliente.connect(('127.0.0.1', int(1115)))
       logging.info("Conexión con el servidor del socket hecha")
       return cliente
    except ConnectionRefusedError:

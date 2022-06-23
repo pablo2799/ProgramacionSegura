@@ -1,0 +1,65 @@
+{% extends 'base_registros.html' %}
+{% block titulo %}login{% endblock %}
+{% block encabezado %}Iniciar Sesión{% endblock %}
+{% block instruccion%}Ingresa tus datos de usuario{% endblock %}
+{% block contenido %} 
+   <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top"><!--Para el menu-->
+      <div class="container-fluid">
+         <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="logout"></a>
+            </li>
+            <!--
+            <li class="nav-item">
+              <a class="nav-link" href="ejercicios">Lista de ejercicios_2</a>
+            </li>
+          -->
+         </ul>
+
+      </div>
+   </nav>
+
+   <div class="container">
+      <div class="row text-center login-page">
+         <div class="col-md-12 login-form">
+            <form  class="form-login" method="POST">
+               {% csrf_token %}
+              
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <input class="controls" name="usuario1" type="text" placeholder="Nombre de usuario" required/>
+                  </div>
+               </div>
+               <br>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <input class="controls" name="password" type="password" placeholder="Contraseña" required/>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <label for="tipousuario"><h5>Loguearse como:</h5>
+                        <select name="tipousuario" required>
+                           <option value="maestro">Maestro</option>
+                           <option value="alumno">Alumno</option>
+                        </select>
+                     </label>
+                  </div>
+               </div>
+               <br>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <!--<button class="btn btn-info" type="submit">Entrar</button>-->
+                     <input class="btn btn-secondary" id="boton" title="Pulsa para iniciar sesion" type="submit" value="Iniciar sesión"/>
+                  </div>
+               </div>
+               <div class="row">
+                  <a class=" text-black" href="./registrar_alumnos">Registrarse como alumno</a><br>
+                  <a class=" text-black" href="./registrar_maestros">Registrarse como maestro</a>
+               </div>
+               
+            </form>
+         </div>
+      </div>
+   </div>
+{% endblock %}

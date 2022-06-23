@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html lang="es-MX">
+   <head>
+       <title>Inicio de Sesion</title>
+       <meta charset="UTF-8" />
+       <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   </head>
+        {% if errores %}
+            <div class="panel panel-danger" id="errores">
+                <div class="panel-heading">Falló el inicio de sesión</div>
+                <div class="panel-body">
+                    <ul>
+                        {% for error in errores %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}   
+   <div class="container">
+      <div class="row text-center login-page">
+         <div class="col-md-12 login-form">
+            <form  class="form-login" method="POST">
+               {% csrf_token %}
+               <div class="row">
+                  <div class="col-md-12 login-form-header">
+                     <h2 class="login-form-font-header">Iniciar sesion</h2>
+                  </div>
+                  <div class="col-md-12 login-form-header">
+                     <h5 class="login-form-font-header">Autenticacion multifactor</h5>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <input class="controls" name="usuario1" type="text" placeholder="Nombre de usuario" required/>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <input class="controls" name="password" type="password" placeholder="Contraseña" required/>
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-md-12 login-from-row">
+                     <!--<button class="btn btn-info" type="submit">Entrar</button>-->
+                     <input id="boton" title="Pulsa para iniciar sesion" type="submit" value="Iniciar sesión"/>
+                  </div>
+               </div>
+               <div class="row">
+                  <a class=" text-white" href="./registrar_alumnos">Registrarse como alumno</a><br>
+                  <a class=" text-white" href="./registrar_maestros">Registrarse como maestro</a>
+               </div>
+               <label for="tipousuario"><h3>Loguearse como:</h3>
+                  <select name="tipousuario" required>
+                     <option value="maestro">Maestro</option>
+                     <option value="alumno">Alumno</option>
+                  </select>
+              </label>
+            </form>
+         </div>
+      </div>
+   </div>
+</html>
+

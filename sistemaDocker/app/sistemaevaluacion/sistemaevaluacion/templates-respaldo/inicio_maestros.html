@@ -1,0 +1,20 @@
+{% extends 'base_m.html' %}
+{% block titulo %}Inicio maestros{% endblock %}
+{% block encabezado %}Inicio 
+<h2>Bienvenido {{userlog}}</h2>
+{% endblock %}
+{% block subtitulo%}
+<h5>Funcionamiento</h5>
+<p>Esta plataforma...</p>
+{% endblock %}
+{% block contenido %}
+   <div>
+      <h2>¿Qué quieres hacer?</h2>
+   </div>
+   <div>
+      <a class="nav-link" href="crear_ejercicios">Crear ejercicios</a>
+      <a class="nav-link" href="listar_ejercicios_maestros">Lista de ejercicios</a>
+      <a class="nav-link" href="revisar_ejercicio">Revisar ejercicios</a>
+      
+   </div>
+{% endblock %}
